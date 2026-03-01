@@ -20,19 +20,12 @@ const authSlice = createSlice({
       state.user = data?.user || null;
       state.isAuthenticated = success && !!data?.user;
     },
-    logout: (state) => {
-      state.success = false;
-      state.statusCode = null;
-      state.message = null;
-      state.user = null;
-      state.isAuthenticated = false;
-    },
+    logout: () => initialState, // ✅ returns initialState directly, also clears persist
   },
 });
 
 export const { setCredentials, logout } = authSlice.actions;
 
-// Selectors
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectAuthMessage = (state) => state.auth.message;
