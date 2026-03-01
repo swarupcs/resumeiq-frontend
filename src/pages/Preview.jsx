@@ -214,9 +214,9 @@ const Preview = () => {
             and try again.
           </p>
           <Button asChild>
-            <Link to='/'>
+            <Link to='/dashboard'>
               <ArrowLeft className='mr-2 h-4 w-4' />
-              Go to Home
+              Go to Dashboard
             </Link>
           </Button>
         </div>
@@ -232,11 +232,11 @@ const Preview = () => {
           <div className='flex items-center justify-between gap-4'>
             <div className='flex items-center gap-4 min-w-0'>
               <Link
-                to='/'
+                to='/dashboard'
                 className='inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors shrink-0'
               >
                 <ArrowLeft className='size-4' />
-                <span className='hidden sm:inline'>Back</span>
+                <span className='hidden sm:inline'>Dashboard</span>
               </Link>
               <div className='min-w-0'>
                 <h1 className='font-semibold text-foreground truncate'>

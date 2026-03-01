@@ -1,11 +1,12 @@
 import './App.css';
-import AppRoutes from './AppRoutes';
+
 import { Toaster } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import store, { persistor } from './app/store.js';
 import { Loader2 } from 'lucide-react';
+import AppRoutes from './AppRoutes.jsx';
 
 const queryClient = new QueryClient(); // ✅ outside component
 
