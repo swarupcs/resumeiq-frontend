@@ -20,14 +20,6 @@ import { EditResumeModal } from '@/components/dashboard/EditResumeModal';
 import { DeleteConfirmDialog } from '@/components/dashboard/DeleteConfirmDialog';
 import Navbar from '@/components/Navbar';
 import {
-  createResume,
-  uploadResume,
-  updateResumeTitle,
-  deleteResume,
-  duplicateResume,
-  toggleResumeVisibility,
-} from '@/services/mockResumeApi';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -35,17 +27,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { useUserResume } from '../hooks/user/useUserResume.js';
+
+// ✅ Real hooks
+import { useUserResume } from '@/hooks/user/useUserResume.js';
+import { useCreateResume } from '@/hooks/resume/useCreateResume.js';
+import { useDeleteResume } from '@/hooks/resume/useDeleteResume.js';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
-import { selectCurrentUser } from '@/features/authSlice.js';
+import { resumeService } from '@/services/resume.service.js';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const user = useSelector(selectCurrentUser);
 
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('updated');
   const [viewMode, setViewMode] = useState('grid');
@@ -55,8 +48,14 @@ const Dashboard = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedResume, setSelectedResume] = useState(null);
 
+  // ── Queries ──
   const { data: resumes = [], isLoading } = useUserResume();
 
+  // ── Mutations ──
+  const { mutate: createResume, isPending: isCreating } = useCreateResume();
+  const { mutate: deleteResume, isPending: isDeleting } = useDeleteResume();
+
+  // ── Filter & sort ──
   const filteredResumes = useMemo(() => {
     return resumes
       .filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -68,71 +67,67 @@ const Dashboard = () => {
       });
   }, [resumes, searchQuery, sortBy]);
 
-  const handleCreateResume = async (title) => {
-    const newResume = await createResume(title);
-    toast.success('Resume created successfully');
-    queryClient.invalidateQueries(['userResume']);
-    navigate(`/app/builder/${newResume.id}`);
+  // ── Handlers ──
+  const handleCreateResume = (title) => {
+    createResume(title, {
+      onSuccess: (data) => navigate(`/app/builder/${data.data.resume._id}`),
+    });
   };
 
   const handleUploadResume = async (title, pdfText) => {
-    const newResume = await uploadResume(title, pdfText);
-    toast.success('Resume uploaded successfully');
-    navigate(`/app/builder/${newResume.id}`);
+    try {
+      const data = await resumeService.uploadResume({
+        title,
+        resumeText: pdfText,
+      });
+      toast.success('Resume uploaded successfully');
+      queryClient.invalidateQueries({ queryKey: ['userResume'] });
+      navigate(`/app/builder/${data.data.resume._id}`);
+    } catch {
+      toast.error('Failed to upload resume');
+    }
   };
 
   const handleEditResume = async (id, title) => {
-    await updateResumeTitle(id, title);
-    toast.success('Resume updated successfully');
-    queryClient.invalidateQueries(['userResume']);
+    try {
+      await resumeService.updateResumeTitle(id, title);
+      toast.success('Resume updated successfully');
+      queryClient.invalidateQueries({ queryKey: ['userResume'] });
+    } catch {
+      toast.error('Failed to update resume');
+    }
   };
 
-  const handleDeleteResume = async () => {
+  const handleDeleteResume = () => {
     if (!selectedResume) return;
-    setDeleteLoading(true);
-    try {
-      await deleteResume(selectedResume.id);
-      toast.success('Resume deleted successfully');
-      queryClient.invalidateQueries(['userResume']);
-      setDeleteDialogOpen(false);
-      setSelectedResume(null);
-    } catch {
-      toast.error('Failed to delete resume');
-    } finally {
-      setDeleteLoading(false);
-    }
+    deleteResume(selectedResume._id, {
+      onSuccess: () => {
+        setDeleteDialogOpen(false);
+        setSelectedResume(null);
+      },
+    });
   };
-
-  const handleDuplicate = async (resume) => {
-    try {
-      await duplicateResume(resume.id);
-      toast.success('Resume duplicated successfully');
-      queryClient.invalidateQueries(['userResume']);
-    } catch {
-      toast.error('Failed to duplicate resume');
-    }
-  };
-
-  const handleShare = async (resume) => {
-    const shareUrl = `${window.location.origin}/preview/${resume.id}`;
-    await navigator.clipboard.writeText(shareUrl);
-    toast.success('Resume link copied to clipboard');
-  };
-
-  const handleDownload = (resume) =>
-    navigate(`/app/builder/${resume.id}?download=true`);
-  const handlePreview = (resume) => navigate(`/preview/${resume._id}`);
-  const handleCardClick = (resume) => navigate(`/app/builder/${resume._id}`);
 
   const handleToggleVisibility = async (resume) => {
     try {
-      await toggleResumeVisibility(resume.id);
+      await resumeService.toggleResumeVisibility(resume._id);
       toast.success('Resume visibility updated');
-      queryClient.invalidateQueries(['userResume']);
+      queryClient.invalidateQueries({ queryKey: ['userResume'] });
     } catch {
       toast.error('Failed to update visibility');
     }
   };
+
+  const handleShare = async (resume) => {
+    const shareUrl = `${window.location.origin}/preview/${resume._id}`;
+    await navigator.clipboard.writeText(shareUrl);
+    toast.success('Resume link copied to clipboard');
+  };
+
+  const handlePreview = (resume) => navigate(`/preview/${resume._id}`);
+  const handleCardClick = (resume) => navigate(`/app/builder/${resume._id}`);
+  const handleDownload = (resume) =>
+    navigate(`/app/builder/${resume._id}?download=true`);
 
   const openEditModal = (resume) => {
     setSelectedResume(resume);
@@ -151,7 +146,7 @@ const Dashboard = () => {
         {/* ── Unified sticky toolbar ── */}
         <div className='sticky top-16 z-10 bg-background/95 backdrop-blur-sm border-b border-border'>
           <div className='container mx-auto px-4'>
-            {/* Top row: title + actions */}
+            {/* Top row */}
             <div className='flex items-center justify-between py-4'>
               <div className='flex items-center gap-3'>
                 <div className='w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center'>
@@ -183,15 +178,20 @@ const Dashboard = () => {
                 <Button
                   size='sm'
                   onClick={() => setCreateModalOpen(true)}
+                  disabled={isCreating}
                   className='gap-2'
                 >
-                  <Plus className='h-4 w-4' />
+                  {isCreating ? (
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                  ) : (
+                    <Plus className='h-4 w-4' />
+                  )}
                   New Resume
                 </Button>
               </div>
             </div>
 
-            {/* Bottom row: search + filters — only show if there are resumes */}
+            {/* Bottom row: search + filters */}
             {resumes.length > 0 && (
               <div className='flex gap-3 items-center pb-3'>
                 <div className='relative flex-1'>
@@ -253,16 +253,13 @@ const Dashboard = () => {
               </p>
             </div>
           ) : resumes.length === 0 ? (
-            /* ── Empty state ── */
             <div className='flex flex-col items-center justify-center py-24 px-4'>
-              {/* Decorative glow */}
               <div className='relative mb-8'>
                 <div className='absolute inset-0 bg-primary/20 rounded-full blur-2xl scale-150' />
                 <div className='relative w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center'>
                   <FileText className='h-10 w-10 text-primary' />
                 </div>
               </div>
-
               <h2 className='text-2xl font-bold text-foreground mb-2'>
                 No resumes yet
               </h2>
@@ -270,26 +267,21 @@ const Dashboard = () => {
                 Create your first AI-powered resume or upload an existing one to
                 get started.
               </p>
-
               <div className='flex flex-col sm:flex-row gap-3'>
                 <Button
                   variant='outline'
                   onClick={() => setUploadModalOpen(true)}
                   className='gap-2'
                 >
-                  <Upload className='h-4 w-4' />
-                  Upload Existing
+                  <Upload className='h-4 w-4' /> Upload Existing
                 </Button>
                 <Button
                   onClick={() => setCreateModalOpen(true)}
                   className='gap-2'
                 >
-                  <Sparkles className='h-4 w-4' />
-                  Create with AI
+                  <Sparkles className='h-4 w-4' /> Create with AI
                 </Button>
               </div>
-
-              {/* Hint cards */}
               <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mt-16 w-full max-w-2xl'>
                 {[
                   {
@@ -345,7 +337,6 @@ const Dashboard = () => {
                   onEdit={openEditModal}
                   onDelete={openDeleteDialog}
                   onClick={handleCardClick}
-                  onDuplicate={handleDuplicate}
                   onShare={handleShare}
                   onDownload={handleDownload}
                   onPreview={handlePreview}
@@ -380,7 +371,7 @@ const Dashboard = () => {
       <DeleteConfirmDialog
         open={deleteDialogOpen}
         resume={selectedResume}
-        loading={deleteLoading}
+        loading={isDeleting}
         onClose={() => {
           setDeleteDialogOpen(false);
           setSelectedResume(null);
