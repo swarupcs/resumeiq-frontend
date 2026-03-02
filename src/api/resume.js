@@ -1,9 +1,10 @@
 import axiosInstance from '@/config/axiosConfig.js';
+import { publicAxios } from '@/config/publicAxios.js';
 
 export const getResumeByIdApi = (resumeId) =>
   axiosInstance.get(`/resume/${resumeId}`);
 export const getPublicResumeByIdApi = (resumeId) =>
-  axiosInstance.get(`/resume/public/${resumeId}`);
+  publicAxios.get(`/resume/public/${resumeId}`); // ✅ no cookies
 export const createResumeApi = (data) =>
   axiosInstance.post('/resume/create', data);
 export const updateResumeApi = (formData) =>
