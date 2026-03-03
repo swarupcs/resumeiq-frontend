@@ -40,7 +40,7 @@ const Dashboard = () => {
   const user = useSelector(selectCurrentUser);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('updated');
+  const [sortBy, setSortBy] = useState('title');
   const [viewMode, setViewMode] = useState('grid');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
