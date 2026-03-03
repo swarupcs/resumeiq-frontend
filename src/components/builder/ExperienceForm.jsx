@@ -44,7 +44,13 @@ const ExperienceForm = ({ data, onChange }) => {
     const userContent = `Company: ${experience.company}\nPosition: ${experience.position}\nCurrent Description: ${experience.description || 'None'}`;
 
     const result = await enhanceJobDescription(userContent);
-    updateExperience(index, 'description', result.enhanced || result);
+    console.log('result', result);
+    if (result?.data?.enhancedContent) {
+      updateExperience(index, 'description', result?.data?.enhancedContent);
+    } else {
+      console.log('error while generating job description');
+      toast.error('error while generating job description');
+    }
   };
 
   const isGeneratingIndex = (index) => {
