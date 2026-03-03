@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -60,20 +60,19 @@ const ResumeBuilder = () => {
   const { resumeId } = useParams();
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
   const [removeBackground, setRemoveBackground] = useState(false);
-  const [resumeData, setResumeData] = useState(DEFAULT_RESUME);
-
-  // ─── Fetch ─────────────────────────────────────────────────────────────────
+  // ─── Fetch ───────────────────────────────────────────────────────────────────────────
   const { data: fetchedResume, isLoading } = useResumeById(resumeId, {
     onError: (error) => toast.error(error.message || 'Failed to load resume'),
   });
 
-  // ─── Populate local state once data arrives ────────────────────────────────
-  useEffect(() => {
-    if (!fetchedResume?.resume) return;
+  // ─── Derive mapped resume data ──────────────────────────────────────────────────
+  // useMemo avoids the useEffect + setState anti-pattern. The mapped object is
+  // recomputed only when fetchedResume changes, with no extra render cycle.
+  const serverResume = useMemo(() => {
+    const resume = fetchedResume?.data?.resume;
+    if (!resume) return null;
 
-    const resume = fetchedResume.resume;
-
-    setResumeData({
+    return {
       _id: resume._id,
       title: resume.title ?? DEFAULT_RESUME.title,
 
@@ -126,8 +125,26 @@ const ResumeBuilder = () => {
 
       // Map isPublic (MongoDB) -> public (frontend state)
       public: resume.isPublic ?? DEFAULT_RESUME.public,
-    });
+    };
   }, [fetchedResume]);
+
+  // Local overrides layer — user edits are tracked here on top of serverResume
+  const [localOverrides, setLocalOverrides] = useState({});
+
+  // Merge: server data as base, local edits on top
+  const resumeData = useMemo(
+    () => ({ ...DEFAULT_RESUME, ...serverResume, ...localOverrides }),
+    [serverResume, localOverrides],
+  );
+
+  // Setter that components call — only stores the diff from server data
+  const setResumeData = (updater) => {
+    setLocalOverrides((prev) => {
+      const current = { ...DEFAULT_RESUME, ...serverResume, ...prev };
+      const next = typeof updater === 'function' ? updater(current) : updater;
+      return next;
+    });
+  };
 
   // ─── Save ──────────────────────────────────────────────────────────────────
   const { mutate: updateResume, isPending: isSaving } =
