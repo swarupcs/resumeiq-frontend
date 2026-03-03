@@ -14,7 +14,10 @@ import { useUploadResume } from '@/hooks/ai/useUploadResume.js';
 import { useNavigate } from 'react-router-dom';
 import * as pdfjsLib from 'pdfjs-dist';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// ✅ Use the bundled worker that Vite can resolve locally — avoids CDN fetch
+// issues with pdfjs-dist v5 which changed the worker module format.
+import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+pdfjsLib.GlobalWorkerOptions.workerSrc = PdfWorker;
 
 export const UploadResumeModal = ({ open, onClose }) => {
   const [title, setTitle] = useState('');
