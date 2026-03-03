@@ -2,12 +2,11 @@ import { useMutation } from '@tanstack/react-query';
 import { resumeService } from '@/services/resume.service.js';
 import { toast } from 'sonner';
 
-// Pass resumeData through to the service.
-
-export const useExportResumePdf = () => {
+// Used on the public preview/shared link page — only works for public resumes
+export const useExportResumePdfPublic = () => {
   return useMutation({
-    mutationFn: ({ resumeId, fullName, resumeData }) =>
-      resumeService.exportResumePdf(resumeId, fullName, resumeData),
+    mutationFn: ({ resumeId, fullName }) =>
+      resumeService.exportResumePdfPublic(resumeId, fullName),
     onMutate: () => {
       toast.loading('Generating PDF...', { id: 'pdf-export' });
     },

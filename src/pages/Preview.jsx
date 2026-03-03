@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import {
@@ -40,7 +40,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { usePublicResumeById } from '@/hooks/resume/usePublicResumeById.js';
-import { useExportResumePdf } from '@/hooks/resume/useExportResumePdf.js';
+import { useExportResumePdfPublic } from '@/hooks/resume/useExportResumePdfPublic.js';
 
 const templates = [
   { id: 'classic', name: 'Classic' },
@@ -70,8 +70,7 @@ const Preview = () => {
   const [zoom, setZoom] = useState(100);
   const [copied, setCopied] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
-  const [previewTemplate, setPreviewTemplate] = useState('');
-  const [previewColor, setPreviewColor] = useState('');
+
   const [viewCount] = useState(() => Math.floor(Math.random() * 500) + 50);
 
   const previewRef = useRef(null);
@@ -79,14 +78,18 @@ const Preview = () => {
   const { data: response, isLoading, isError } = usePublicResumeById(resumeId);
   const resumeData = response?.data?.resume ?? null;
 
-  const { mutate: exportPdf, isPending: isDownloading } = useExportResumePdf();
+  const { mutate: exportPdf, isPending: isDownloading } =
+    useExportResumePdfPublic();
 
-  useEffect(() => {
-    if (resumeData) {
-      setPreviewTemplate(resumeData.template || 'classic');
-      setPreviewColor(resumeData.accent_color || '#3B82F6');
-    }
-  }, [resumeData]);
+  // Initialize template and color from server data on first load.
+  // After that the user can override them via the dropdowns.
+  // Using null as sentinel so we can detect "not yet initialized".
+  const [previewTemplate, setPreviewTemplate] = useState(null);
+  const [previewColor, setPreviewColor] = useState(null);
+
+  // Resolved values — falls back to resume data or defaults until state is set
+  const activeTemplate = previewTemplate ?? resumeData?.template ?? 'classic';
+  const activeColor = previewColor ?? resumeData?.accent_color ?? '#3B82F6';
 
   const handleZoomIn = () => setZoom((p) => Math.min(p + 10, 150));
   const handleZoomOut = () => setZoom((p) => Math.max(p - 10, 50));
@@ -192,7 +195,7 @@ const Preview = () => {
 
   return (
     <div className='min-h-screen bg-muted/30'>
-      {/* ── Header — hidden on PDF export ── */}
+      {/* Header hidden on PDF export */}
       <div
         data-hide-on-export
         className='bg-background border-b border-border sticky top-0 z-20'
@@ -241,12 +244,10 @@ const Preview = () => {
                     <DropdownMenuItem
                       key={t.id}
                       onClick={() => setPreviewTemplate(t.id)}
-                      className={
-                        previewTemplate === t.id ? 'bg-primary/10' : ''
-                      }
+                      className={activeTemplate === t.id ? 'bg-primary/10' : ''}
                     >
                       {t.name}
-                      {previewTemplate === t.id && (
+                      {activeTemplate === t.id && (
                         <Check className='size-4 ml-auto' />
                       )}
                     </DropdownMenuItem>
@@ -265,7 +266,7 @@ const Preview = () => {
                     <Palette className='size-4' />
                     <div
                       className='size-4 rounded-full border border-border'
-                      style={{ backgroundColor: previewColor }}
+                      style={{ backgroundColor: activeColor }}
                     />
                     <ChevronDown className='size-3' />
                   </Button>
@@ -277,7 +278,7 @@ const Preview = () => {
                         key={color.value}
                         onClick={() => setPreviewColor(color.value)}
                         className={`size-8 rounded-full border-2 transition-transform hover:scale-110 ${
-                          previewColor === color.value
+                          activeColor === color.value
                             ? 'border-foreground scale-110'
                             : 'border-transparent'
                         }`}
@@ -354,7 +355,7 @@ const Preview = () => {
         </div>
       </div>
 
-      {/* ── Zoom Controls — hidden on PDF export ── */}
+      {/* Zoom Controls hidden on PDF export */}
       <div
         data-hide-on-export
         className='fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-background/95 backdrop-blur-sm border border-border rounded-full px-4 py-2 shadow-lg'
@@ -394,7 +395,7 @@ const Preview = () => {
         </Button>
       </div>
 
-      {/* ── Resume Preview ── */}
+      {/* Resume Preview */}
       <div className='py-10 px-4 flex justify-center'>
         <div
           ref={previewRef}
@@ -408,13 +409,13 @@ const Preview = () => {
         >
           <ResumePreview
             data={resumeData}
-            template={previewTemplate}
-            accentColor={previewColor}
+            template={activeTemplate}
+            accentColor={activeColor}
           />
         </div>
       </div>
 
-      {/* ── CTA — hidden on PDF export ── */}
+      {/* CTA hidden on PDF export */}
       <div data-hide-on-export className='fixed bottom-6 right-6 z-10'>
         <Button onClick={() => navigate('/signup')} className='shadow-lg gap-2'>
           Create Your Resume
@@ -422,7 +423,7 @@ const Preview = () => {
         </Button>
       </div>
 
-      {/* ── QR Modal ── */}
+      {/* QR Modal */}
       <Dialog open={showQRModal} onOpenChange={setShowQRModal}>
         <DialogContent className='sm:max-w-md'>
           <DialogHeader>

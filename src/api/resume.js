@@ -18,7 +18,17 @@ export const updateResumeTitleApi = (id, title) =>
   axiosInstance.patch(`/resume/${id}/title`, { title });
 export const toggleResumeVisibilityApi = (id) =>
   axiosInstance.patch(`/resume/${id}/visibility`);
-export const exportResumePdfApi = (resumeId) =>
-  axiosInstance.get(`/resume/${resumeId}/export-pdf`, {
+
+// Switch from GET to POST so we can send resumeData in the body.
+
+export const exportResumePdfApi = (resumeId, resumeData) =>
+  axiosInstance.post(
+    `/resume/${resumeId}/export-pdf`,
+    { resumeData: JSON.stringify(resumeData) },
+    { responseType: 'blob' }
+  );
+
+export const exportResumePdfPublicApi = (resumeId) =>
+  axiosInstance.get(`/resume/${resumeId}/export-pdf/public`, {
     responseType: 'blob',
   });

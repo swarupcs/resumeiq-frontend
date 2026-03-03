@@ -7,6 +7,7 @@ import {
   updateResumeTitleApi,
   toggleResumeVisibilityApi,
   exportResumePdfApi,
+  exportResumePdfPublicApi,
 } from '@/api/resume.js';
 import handleApiError from '@/lib/handleApiError.js';
 
@@ -79,9 +80,27 @@ export const resumeService = {
       throw handleApiError(error, 'Failed to toggle visibility');
     }
   },
-  exportResumePdf: async (resumeId, fullName) => {
+  // Now sends current resumeData in the body so the backend renders from
+  // the latest frontend state, not stale DB data.
+
+  exportResumePdf: async (resumeId, fullName, resumeData) => {
     try {
-      const { data } = await exportResumePdfApi(resumeId);
+      const { data } = await exportResumePdfApi(resumeId, resumeData);
+      const url = URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${fullName ?? 'Resume'}_Resume.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      throw handleApiError(error, 'Failed to export PDF');
+    }
+  },
+
+  // Public download — only works for public resumes (used on shared preview page)
+  exportResumePdfPublic: async (resumeId, fullName) => {
+    try {
+      const { data } = await exportResumePdfPublicApi(resumeId);
       const url = URL.createObjectURL(data);
       const link = document.createElement('a');
       link.href = url;

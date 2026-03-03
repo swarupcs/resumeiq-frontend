@@ -8,6 +8,7 @@ import Dashboard from '@/pages/Dashboard.jsx';
 import ResumeBuilder from '@/pages/ResumeBuilder.jsx';
 import Preview from '@/pages/Preview.jsx';
 import NotFoundPage from '@/pages/NotFoundPage.jsx';
+import Render from '@/pages/Render.jsx';
 
 function AppRoutes() {
   return (
@@ -16,6 +17,7 @@ function AppRoutes() {
       <Route path='/' element={<LandingPage />} />
       <Route path='/view/:resumeId' element={<Preview />} />
       <Route path='/preview/:resumeId' element={<Preview />} />
+      <Route path='/render' element={<Render />} />
 
       {/* Guest only */}
       <Route element={<GuestRoute />}>
