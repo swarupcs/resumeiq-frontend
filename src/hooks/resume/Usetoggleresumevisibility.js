@@ -8,10 +8,11 @@ export const useToggleResumeVisibility = () => {
   return useMutation({
     mutationFn: (resumeId) => resumeService.toggleResumeVisibility(resumeId),
     onSuccess: (data, resumeId) => {
-      // Invalidate so any other consumers of this resume stay in sync
       queryClient.invalidateQueries({ queryKey: ['resume', resumeId] });
       toast.success(
-        data.resume.isPublic ? 'Resume is now public' : 'Resume is now private',
+        data.data.resume.isPublic
+          ? 'Resume is now public'
+          : 'Resume is now private',
       );
     },
     onError: (error) => {

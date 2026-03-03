@@ -67,15 +67,11 @@ const ResumeBuilder = () => {
     onError: (error) => toast.error(error.message || 'Failed to load resume'),
   });
 
-  console.log('fetchedResume', fetchedResume);
-
   // ─── Populate local state once data arrives ────────────────────────────────
   useEffect(() => {
-    if (!fetchedResume?.data?.resume) return;
+    if (!fetchedResume?.resume) return;
 
-    const resume = fetchedResume.data.resume;
-
-    console.log("fetchedResume", fetchedResume)
+    const resume = fetchedResume.resume;
 
     setResumeData({
       _id: resume._id,
@@ -177,7 +173,10 @@ const ResumeBuilder = () => {
   const changeResumeVisibility = () => {
     toggleVisibility(resumeId, {
       onSuccess: (data) => {
-        setResumeData((prev) => ({ ...prev, public: data.resume.isPublic }));
+        setResumeData((prev) => ({
+          ...prev,
+          public: data.data.resume.isPublic,
+        }));
       },
     });
   };
