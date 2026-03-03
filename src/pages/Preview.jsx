@@ -120,7 +120,10 @@ const Preview = () => {
           text: `Check out ${resumeData?.personal_info?.full_name}'s resume`,
           url: shareUrl,
         });
-      } catch {}
+      } catch (error) {
+        console.error('Share error:', error);
+        toast.error('Failed to share. Try again.');
+      }
     } else {
       handleCopyLink();
     }
