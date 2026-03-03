@@ -7,7 +7,7 @@ export const useResumeById = (resumeId, options = {}) => {
     queryKey: ['resume', resumeId],
     queryFn: () => resumeService.getResumeById(resumeId),
     enabled: !!resumeId,
-    staleTime: 1000 * 60 * 5,
+    // staleTime: 1000 * 60 * 5,
     ...options,
   });
 };

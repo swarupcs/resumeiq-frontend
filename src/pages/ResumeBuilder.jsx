@@ -67,25 +67,68 @@ const ResumeBuilder = () => {
     onError: (error) => toast.error(error.message || 'Failed to load resume'),
   });
 
+  console.log('fetchedResume', fetchedResume);
+
   // ─── Populate local state once data arrives ────────────────────────────────
   useEffect(() => {
-    if (!fetchedResume?.resume) return;
+    if (!fetchedResume?.data?.resume) return;
 
-    const resume = fetchedResume.resume;
+    const resume = fetchedResume.data.resume;
 
-    // Map isPublic (MongoDB) → public (frontend state)
+    console.log("fetchedResume", fetchedResume)
+
     setResumeData({
       _id: resume._id,
       title: resume.title ?? DEFAULT_RESUME.title,
-      personal_info: resume.personal_info ?? DEFAULT_RESUME.personal_info,
-      professional_summary:
-        resume.professional_summary ?? DEFAULT_RESUME.professional_summary,
-      experience: resume.experience ?? DEFAULT_RESUME.experience,
-      education: resume.education ?? DEFAULT_RESUME.education,
-      project: resume.project ?? DEFAULT_RESUME.project,
-      skills: resume.skills ?? DEFAULT_RESUME.skills,
+
+      // PersonalInfoForm: { full_name, email, phone, location, profession, linkedin, website, image }
+      personal_info: {
+        full_name: resume.personal_info?.full_name ?? '',
+        email: resume.personal_info?.email ?? '',
+        phone: resume.personal_info?.phone ?? '',
+        location: resume.personal_info?.location ?? '',
+        profession: resume.personal_info?.profession ?? '',
+        linkedin: resume.personal_info?.linkedin ?? '',
+        website: resume.personal_info?.website ?? '',
+        image: resume.personal_info?.image ?? '',
+      },
+
+      // ProfessionalSummaryForm: plain string
+      professional_summary: resume.professional_summary ?? '',
+
+      // ExperienceForm: { company, position, start_date, end_date, description, is_current }
+      experience: (resume.experience ?? []).map((exp) => ({
+        company: exp.company ?? '',
+        position: exp.position ?? '',
+        start_date: exp.start_date ?? '',
+        end_date: exp.end_date ?? '',
+        description: exp.description ?? '',
+        is_current: exp.is_current ?? false,
+      })),
+
+      // EducationForm: { institution, degree, field, graduation_date, gpa }
+      education: (resume.education ?? []).map((edu) => ({
+        institution: edu.institution ?? '',
+        degree: edu.degree ?? '',
+        field: edu.field ?? '',
+        graduation_date: edu.graduation_date ?? '',
+        gpa: edu.gpa ?? '',
+      })),
+
+      // ProjectForm: { name, type, description }
+      project: (resume.project ?? []).map((proj) => ({
+        name: proj.name ?? '',
+        type: proj.type ?? '',
+        description: proj.description ?? '',
+      })),
+
+      // SkillsForm: array of strings
+      skills: (resume.skills ?? []).map((skill) => String(skill)),
+
       template: resume.template ?? DEFAULT_RESUME.template,
       accent_color: resume.accent_color ?? DEFAULT_RESUME.accent_color,
+
+      // Map isPublic (MongoDB) -> public (frontend state)
       public: resume.isPublic ?? DEFAULT_RESUME.public,
     });
   }, [fetchedResume]);
