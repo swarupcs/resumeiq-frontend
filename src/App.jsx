@@ -6,8 +6,9 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import store, { persistor } from './app/store.js';
 import { Loader2 } from 'lucide-react';
-import AppRoutes from './AppRoutes.jsx';
+
 import { ThemeProvider } from './context/ThemeProvider.jsx';
+import AppRoutes from './routes/AppRoutes.jsx';
 
 
 const queryClient = new QueryClient();
