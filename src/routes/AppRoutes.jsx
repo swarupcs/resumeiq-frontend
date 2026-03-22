@@ -9,37 +9,29 @@ import ResumeBuilder from '@/pages/ResumeBuilder.jsx';
 import Preview from '@/pages/Preview.jsx';
 import NotFoundPage from '@/pages/NotFoundPage.jsx';
 import Render from '@/pages/Render.jsx';
+import CoverLetter from '@/pages/CoverLetter.jsx';
 
 function AppRoutes() {
   return (
     <Routes>
       {/* Public */}
       <Route path='/' element={<LandingPage />} />
-
-      {/* FIX: /view/:resumeId and /preview/:resumeId both existed and both rendered
-          Preview.jsx. The builder's handleShare used /view/:id while the dashboard
-          used /preview/:id — creating two canonical URLs for the same page.
-          Now /preview/:id is the single canonical URL.
-          /view/:id redirects permanently so existing shared links still work. */}
-      <Route
-        path='/view/:resumeId'
-        element={<Navigate to='/preview/:resumeId' replace />}
-      />
+      <Route path='/view/:resumeId' element={<Navigate to='/preview/:resumeId' replace />} />
       <Route path='/preview/:resumeId' element={<Preview />} />
-
-      {/* Puppeteer-only render route — never linked to in the UI */}
       <Route path='/render' element={<Render />} />
 
       {/* Guest only */}
       <Route element={<GuestRoute />}>
-        <Route path='/login' element={<Login />} />
+        <Route path='/login'  element={<Login />} />
         <Route path='/signup' element={<Signup />} />
       </Route>
 
       {/* Protected */}
       <Route element={<ProtectedRoute />}>
-        <Route path='/dashboard' element={<Dashboard />} />
-        <Route path='/app/builder/:resumeId' element={<ResumeBuilder />} />
+        <Route path='/dashboard'                    element={<Dashboard />} />
+        <Route path='/app/builder/:resumeId'        element={<ResumeBuilder />} />
+        {/* Phase 5 — Feature 4: Cover letter generator */}
+        <Route path='/app/cover-letter/:resumeId'   element={<CoverLetter />} />
       </Route>
 
       {/* 404 */}

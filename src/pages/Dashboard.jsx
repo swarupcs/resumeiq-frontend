@@ -10,6 +10,8 @@ import { CreateResumeModal } from '@/components/dashboard/CreateResumeModal';
 import { UploadResumeModal } from '@/components/dashboard/UploadResumeModal';
 import { EditResumeModal } from '@/components/dashboard/EditResumeModal';
 import { DeleteConfirmDialog } from '@/components/dashboard/DeleteConfirmDialog';
+import { LinkedInImportModal } from '@/components/dashboard/LinkedInImportModal';
+import { ResumeAnalyticsModal } from '@/components/dashboard/ResumeAnalyticsModal';
 import Navbar from '@/components/Navbar';
 import {
   Select, SelectContent, SelectItem,
@@ -22,31 +24,32 @@ import { resumeService } from '@/services/resume.service.js';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '@/features/authSlice.js';
 import { useDuplicateResume } from '@/hooks/resume/useDuplicateResume.js';
+import { Linkedin } from 'lucide-react';
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const user = useSelector(selectCurrentUser);
+  const navigate     = useNavigate();
+  const queryClient  = useQueryClient();
+  const user         = useSelector(selectCurrentUser);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('updated');
-  const [viewMode, setViewMode] = useState('grid');
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [renameModalOpen, setRenameModalOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedResume, setSelectedResume] = useState(null);
+  const [searchQuery, setSearchQuery]       = useState('');
+  const [sortBy, setSortBy]                 = useState('updated');
+  const [viewMode, setViewMode]             = useState('grid');
+  const [createModalOpen, setCreateModalOpen]       = useState(false);
+  const [uploadModalOpen, setUploadModalOpen]       = useState(false);
+  const [linkedInModalOpen, setLinkedInModalOpen]   = useState(false);  // Phase 5 Feature 1
+  const [renameModalOpen, setRenameModalOpen]       = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen]     = useState(false);
+  const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false); // Phase 5 Feature 3
+  const [selectedResume, setSelectedResume]         = useState(null);
 
   const { data: resumes = [], isLoading } = useUserResume();
-
-  // Phase 3 — Feature 1: Duplicate resume
-  const { mutate: duplicateResume, isPending: isDuplicating } = useDuplicateResume();
+  const { mutate: duplicateResume }       = useDuplicateResume();
 
   const filteredResumes = useMemo(() => {
     return resumes
       .filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()))
       .sort((a, b) => {
-        if (sortBy === 'title') return a.title.localeCompare(b.title);
+        if (sortBy === 'title')   return a.title.localeCompare(b.title);
         if (sortBy === 'created') return new Date(b.createdAt) - new Date(a.createdAt);
         return new Date(b.updatedAt) - new Date(a.updatedAt);
       });
@@ -57,34 +60,35 @@ const Dashboard = () => {
       await resumeService.toggleResumeVisibility(resume._id);
       toast.success('Resume visibility updated');
       queryClient.invalidateQueries({ queryKey: ['userResume'] });
-    } catch {
-      toast.error('Failed to update visibility');
-    }
+    } catch { toast.error('Failed to update visibility'); }
   };
 
   const handleShare = async (resume) => {
-    if (!resume.isPublic) {
-      toast.error('Make the resume public before sharing');
-      return;
-    }
+    if (!resume.isPublic) { toast.error('Make the resume public before sharing'); return; }
     const shareUrl = `${window.location.origin}/preview/${resume._id}`;
     await navigator.clipboard.writeText(shareUrl);
     toast.success('Resume link copied to clipboard');
   };
 
-  const handleEdit = (resume) => navigate(`/app/builder/${resume._id}`);
-  const handlePreview = (resume) => navigate(`/preview/${resume._id}`);
+  const handleEdit      = (resume) => navigate(`/app/builder/${resume._id}`);
+  const handlePreview   = (resume) => navigate(`/preview/${resume._id}`);
   const handleCardClick = (resume) => navigate(`/app/builder/${resume._id}`);
-  const handleDownload = (resume) => navigate(`/app/builder/${resume._id}?download=true`);
+  const handleDownload  = (resume) => navigate(`/app/builder/${resume._id}?download=true`);
   const handleDuplicate = (resume) => duplicateResume(resume._id);
 
-  const openRenameModal = (resume) => { setSelectedResume(resume); setRenameModalOpen(true); };
+  // Phase 5 — Feature 3: Analytics
+  const handleAnalytics = (resume) => {
+    setSelectedResume(resume);
+    setAnalyticsModalOpen(true);
+  };
+
+  const openRenameModal  = (resume) => { setSelectedResume(resume); setRenameModalOpen(true); };
   const openDeleteDialog = (resume) => { setSelectedResume(resume); setDeleteDialogOpen(true); };
 
   const greeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
     return 'Good evening';
   };
 
@@ -113,12 +117,21 @@ const Dashboard = () => {
                   </p>
                 )}
               </div>
-              <div className='flex gap-2.5'>
+              <div className='flex gap-2.5 flex-wrap'>
+                {/* Phase 5 — Feature 1: LinkedIn import button */}
+                <button
+                  onClick={() => setLinkedInModalOpen(true)}
+                  className='items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-secondary/60 hover:bg-secondary hover:border-[#0077B5]/40 text-sm font-medium text-foreground transition-all duration-200 hidden sm:flex'
+                >
+                  <Linkedin className='h-4 w-4 text-[#0077B5]' />
+                  Import LinkedIn
+                </button>
                 <button
                   onClick={() => setUploadModalOpen(true)}
                   className='items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-secondary/60 hover:bg-secondary hover:border-primary/30 text-sm font-medium text-foreground transition-all duration-200 hidden sm:flex'
                 >
-                  <Upload className='h-4 w-4' /> Upload PDF
+                  <Upload className='h-4 w-4' />
+                  Upload PDF
                 </button>
                 <button
                   onClick={() => setCreateModalOpen(true)}
@@ -135,7 +148,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Filters bar */}
+        {/* Filters */}
         {resumes.length > 0 && (
           <div className='sticky top-16 z-10 bg-background/90 backdrop-blur-xl border-b border-border'>
             <div className='container mx-auto px-4'>
@@ -200,14 +213,20 @@ const Dashboard = () => {
               </div>
               <h2 className='font-display text-2xl font-black text-foreground mb-2'>No resumes yet</h2>
               <p className='text-muted-foreground text-center max-w-sm mb-8 text-sm leading-relaxed'>
-                Create your first AI-powered resume or upload an existing one.
+                Create your first AI-powered resume, upload an existing PDF, or import from LinkedIn.
               </p>
               <div className='flex flex-col sm:flex-row gap-3'>
+                <button
+                  onClick={() => setLinkedInModalOpen(true)}
+                  className='flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[#0077B5]/30 bg-[#0077B5]/5 hover:bg-[#0077B5]/10 text-sm font-medium text-foreground transition-all'
+                >
+                  <Linkedin className='h-4 w-4 text-[#0077B5]' /> Import LinkedIn
+                </button>
                 <button
                   onClick={() => setUploadModalOpen(true)}
                   className='flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-sm font-medium text-foreground transition-all'
                 >
-                  <Upload className='h-4 w-4' /> Upload Existing
+                  <Upload className='h-4 w-4' /> Upload PDF
                 </button>
                 <button
                   onClick={() => setCreateModalOpen(true)}
@@ -248,6 +267,7 @@ const Dashboard = () => {
                   onPreview={handlePreview}
                   onToggleVisibility={handleToggleVisibility}
                   onDuplicate={handleDuplicate}
+                  onAnalytics={handleAnalytics}
                 />
               ))}
             </div>
@@ -255,8 +275,10 @@ const Dashboard = () => {
         </main>
       </div>
 
+      {/* Modals */}
       <CreateResumeModal open={createModalOpen} onClose={() => setCreateModalOpen(false)} />
       <UploadResumeModal open={uploadModalOpen} onClose={() => setUploadModalOpen(false)} />
+      <LinkedInImportModal open={linkedInModalOpen} onClose={() => setLinkedInModalOpen(false)} />
       <EditResumeModal
         open={renameModalOpen}
         resume={selectedResume}
@@ -266,6 +288,11 @@ const Dashboard = () => {
         open={deleteDialogOpen}
         resume={selectedResume}
         onClose={() => { setDeleteDialogOpen(false); setSelectedResume(null); }}
+      />
+      <ResumeAnalyticsModal
+        open={analyticsModalOpen}
+        resume={selectedResume}
+        onClose={() => { setAnalyticsModalOpen(false); setSelectedResume(null); }}
       />
     </div>
   );

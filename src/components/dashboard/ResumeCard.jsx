@@ -1,24 +1,12 @@
 import {
-  Pencil,
-  Trash2,
-  FileText,
-  Share2,
-  Download,
-  Eye,
-  Globe,
-  Lock,
-  MoreVertical,
-  Calendar,
-  Edit3,
-  Copy,
+  Pencil, Trash2, FileText, Share2, Download, Eye,
+  Globe, Lock, MoreVertical, Calendar, Edit3, Copy,
+  BarChart2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 
@@ -39,7 +27,8 @@ export const ResumeCard = ({
   onDownload,
   onPreview,
   onToggleVisibility,
-  onDuplicate,   // Phase 3 — Feature 1
+  onDuplicate,
+  onAnalytics,    // Phase 5 — Feature 3
 }) => {
   const colorIndex = resume._id
     ? parseInt(resume._id.slice(-4), 16) % cardGradients.length
@@ -50,7 +39,6 @@ export const ResumeCard = ({
       onClick={() => onClick(resume)}
       className='group relative rounded-2xl border border-border bg-card cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-transparent overflow-hidden shine'
     >
-      {/* Gradient top stripe */}
       <div
         className='h-1.5 w-full'
         style={{
@@ -59,7 +47,6 @@ export const ResumeCard = ({
         }}
       />
 
-      {/* Hover border glow */}
       <div
         className='absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none'
         style={{
@@ -69,7 +56,7 @@ export const ResumeCard = ({
       />
 
       <div className='p-5'>
-        {/* Top row: badge + menu */}
+        {/* Top row */}
         <div className='flex items-center justify-between mb-4'>
           <Badge
             variant={resume.isPublic ? 'default' : 'secondary'}
@@ -79,11 +66,10 @@ export const ResumeCard = ({
                 : 'bg-secondary text-muted-foreground border border-border'
             }`}
           >
-            {resume.isPublic ? (
-              <><Globe className='h-3 w-3' /> Public</>
-            ) : (
-              <><Lock className='h-3 w-3' /> Private</>
-            )}
+            {resume.isPublic
+              ? <><Globe className='h-3 w-3' /> Public</>
+              : <><Lock className='h-3 w-3' /> Private</>
+            }
           </Badge>
 
           <DropdownMenu>
@@ -100,23 +86,24 @@ export const ResumeCard = ({
               onClick={(e) => e.stopPropagation()}
               className='w-52'
             >
-              {/* Primary action — opens the builder */}
               <DropdownMenuItem onClick={() => onEdit(resume)} className='gap-2 font-medium'>
                 <Edit3 className='h-4 w-4' /> Edit Resume
               </DropdownMenuItem>
-
               <DropdownMenuItem onClick={() => onPreview(resume)} className='gap-2'>
                 <Eye className='h-4 w-4' /> Preview
               </DropdownMenuItem>
-
-              {/* Rename — title only */}
               <DropdownMenuItem onClick={() => onRename(resume)} className='gap-2'>
                 <Pencil className='h-4 w-4' /> Rename
               </DropdownMenuItem>
-
-              {/* Phase 3 — Feature 1: Duplicate */}
               <DropdownMenuItem onClick={() => onDuplicate(resume)} className='gap-2'>
                 <Copy className='h-4 w-4' /> Duplicate
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              {/* Phase 5 — Feature 3: Analytics */}
+              <DropdownMenuItem onClick={() => onAnalytics(resume)} className='gap-2'>
+                <BarChart2 className='h-4 w-4' /> Analytics
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />
@@ -124,19 +111,16 @@ export const ResumeCard = ({
               <DropdownMenuItem onClick={() => onDownload(resume)} className='gap-2'>
                 <Download className='h-4 w-4' /> Download PDF
               </DropdownMenuItem>
-
               {resume.isPublic && (
                 <DropdownMenuItem onClick={() => onShare(resume)} className='gap-2'>
                   <Share2 className='h-4 w-4' /> Share Link
                 </DropdownMenuItem>
               )}
-
               <DropdownMenuItem onClick={() => onToggleVisibility(resume)} className='gap-2'>
-                {resume.isPublic ? (
-                  <><Lock className='h-4 w-4' /> Make Private</>
-                ) : (
-                  <><Globe className='h-4 w-4' /> Make Public</>
-                )}
+                {resume.isPublic
+                  ? <><Lock className='h-4 w-4' /> Make Private</>
+                  : <><Globe className='h-4 w-4' /> Make Public</>
+                }
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />
@@ -151,7 +135,7 @@ export const ResumeCard = ({
           </DropdownMenu>
         </div>
 
-        {/* Icon + accent dot */}
+        {/* Icon */}
         <div className='relative w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-105 group-hover:bg-primary/15'>
           <FileText className='h-6 w-6 text-primary' />
           {resume.accent_color && (
@@ -167,17 +151,26 @@ export const ResumeCard = ({
         </h3>
 
         {resume.template && (
-          <p className='text-xs text-muted-foreground mb-3 capitalize font-medium'>
+          <p className='text-xs text-muted-foreground mb-1 capitalize font-medium'>
             {resume.template} template
           </p>
         )}
 
-        <div className='flex items-center gap-1.5 text-xs text-muted-foreground mb-4'>
-          <Calendar className='h-3 w-3' />
-          <span>Updated {format(new Date(resume.updatedAt), 'MMM d, yyyy')}</span>
+        {/* Mini stats row — Phase 5 Feature 3 */}
+        <div className='flex items-center gap-3 text-xs text-muted-foreground mb-3'>
+          <span className='flex items-center gap-1'>
+            <Eye className='h-3 w-3' /> {(resume.views ?? 0).toLocaleString()}
+          </span>
+          <span className='flex items-center gap-1'>
+            <Download className='h-3 w-3' /> {(resume.downloads ?? 0).toLocaleString()}
+          </span>
+          <span className='flex items-center gap-1 ml-auto'>
+            <Calendar className='h-3 w-3' />
+            {format(new Date(resume.updatedAt), 'MMM d')}
+          </span>
         </div>
 
-        {/* Hover action buttons */}
+        {/* Hover actions */}
         <div className='flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0'>
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(resume); }}
