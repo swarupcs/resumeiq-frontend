@@ -1,48 +1,59 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-// Phase 2 — Fix 1: Autosave hook.
+// Bugfix: The previous version used isFirstRender.current to skip the first
+// render, but serverResume arrives asynchronously on a *later* render — so by
+// the time the real data populated resumeData, isFirstRender was already false
+// and the autosave treated the initial data population as a user edit.
 //
-// Usage:
-//   const { autosaveStatus } = useAutosave({ data, onSave, delay: 2000, enabled });
+// Fix: track a `baseline` — the stringified value of `data` at the moment
+// autosave becomes enabled (i.e. when serverResume first loads). Any save
+// attempt where the current data matches the baseline is silently skipped,
+// because it means nothing has actually changed from what the server sent us.
 //
-// autosaveStatus: 'idle' | 'pending' | 'saving' | 'saved' | 'error'
-//
-// How it works:
-//   - Every time `data` changes, a 2-second debounce timer starts.
-//   - If data changes again before the timer fires, it resets (standard debounce).
-//   - When the timer fires, `onSave(data)` is called.
-//   - Status reflects exactly what's happening so the UI badge is always truthful.
-//
-// Design decisions:
-//   - `onSave` is wrapped in a ref so the effect never needs it as a dependency,
-//     avoiding the "re-register debounce on every render" problem.
-//   - `enabled` prop lets the parent disable autosave (e.g. while the initial
-//     data is loading) so the first server→state sync doesn't trigger a save.
-//   - The cleanup function cancels the timer on unmount, preventing state updates
-//     on unmounted components.
+// The baseline updates after every successful save, so future saves are
+// correctly compared against the last saved state, not the original load.
 
 export const useAutosave = ({ data, onSave, delay = 2000, enabled = true }) => {
   const [autosaveStatus, setAutosaveStatus] = useState('idle');
   const timerRef = useRef(null);
   const onSaveRef = useRef(onSave);
-  const isFirstRender = useRef(true);
+
+  // The stringified data at the point autosave was first enabled.
+  // This represents what the server already has — no need to save it again.
+  const baselineRef = useRef(null);
+
+  // Track whether we've captured the baseline yet
+  const baselineCaptured = useRef(false);
 
   // Keep onSaveRef current without re-triggering the effect
   useEffect(() => {
     onSaveRef.current = onSave;
   }, [onSave]);
 
+  // Capture baseline the moment `enabled` flips to true for the first time.
+  // This is the server data freshly loaded — treat it as "already saved".
   useEffect(() => {
-    // Skip the very first render — we don't want to autosave the
-    // initial data loaded from the server.
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
+    if (enabled && !baselineCaptured.current) {
+      baselineRef.current = JSON.stringify(data);
+      baselineCaptured.current = true;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled]);
 
+  const serialized = JSON.stringify(data);
+
+  useEffect(() => {
+    // Don't run until autosave is enabled (serverResume loaded)
     if (!enabled) return;
 
-    // Clear any pending timer so we debounce correctly
+    // Don't run until we've captured the baseline
+    if (!baselineCaptured.current) return;
+
+    // Skip if data is identical to the baseline (initial server load arriving)
+    // or identical to itself (no real change)
+    if (serialized === baselineRef.current) return;
+
+    // Clear any pending timer — debounce restarts on every change
     if (timerRef.current) clearTimeout(timerRef.current);
 
     // Mark as pending — user has unsaved changes
@@ -52,12 +63,12 @@ export const useAutosave = ({ data, onSave, delay = 2000, enabled = true }) => {
       setAutosaveStatus('saving');
       try {
         await onSaveRef.current(data);
+        // Update baseline to the just-saved state
+        baselineRef.current = serialized;
         setAutosaveStatus('saved');
-        // Reset to idle after 3 seconds so the badge doesn't linger forever
         setTimeout(() => setAutosaveStatus('idle'), 3000);
       } catch {
         setAutosaveStatus('error');
-        // Reset to idle after 5 seconds so the user can try saving manually
         setTimeout(() => setAutosaveStatus('idle'), 5000);
       }
     }, delay);
@@ -65,17 +76,18 @@ export const useAutosave = ({ data, onSave, delay = 2000, enabled = true }) => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  // JSON.stringify is the correct deep-comparison approach here.
-  // Comparing object references would always be true (new object on every render).
+  // serialized is the stable deep-comparison key for `data`
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(data), delay, enabled]);
+  }, [serialized, delay, enabled]);
 
-  // Expose a manual trigger so the Save button still works
+  // Manual trigger — cancels pending debounce and saves immediately
   const triggerSave = useCallback(async (currentData) => {
     if (timerRef.current) clearTimeout(timerRef.current);
     setAutosaveStatus('saving');
     try {
+      const serializedCurrent = JSON.stringify(currentData);
       await onSaveRef.current(currentData);
+      baselineRef.current = serializedCurrent;
       setAutosaveStatus('saved');
       setTimeout(() => setAutosaveStatus('idle'), 3000);
     } catch {
@@ -84,5 +96,11 @@ export const useAutosave = ({ data, onSave, delay = 2000, enabled = true }) => {
     }
   }, []);
 
-  return { autosaveStatus, triggerSave };
+  // Call after clearHistory in ResumeBuilder (already wired) — also resets
+  // the baseline so the next save compares against the freshly saved state
+  const resetBaseline = useCallback((currentData) => {
+    baselineRef.current = JSON.stringify(currentData);
+  }, []);
+
+  return { autosaveStatus, triggerSave, resetBaseline };
 };
