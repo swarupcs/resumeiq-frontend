@@ -1,12 +1,16 @@
-import { toast } from "sonner";
-import { signinApi, signupApi, logoutApi } from "../api/auth.js";
-import handleApiError from "../lib/handleApiError.js";
+import { toast } from 'sonner';
+import {
+  signinApi, signupApi, logoutApi,
+  verifyEmailApi, resendVerificationApi,
+  forgotPasswordApi, resetPasswordApi,
+} from '../api/auth.js';
+import handleApiError from '../lib/handleApiError.js';
 
 export const authService = {
   signup: async (userData) => {
     try {
       const { data } = await signupApi(userData);
-      toast.success('Account created successfully!');
+      toast.success('Account created! Please check your email to verify.');
       return data;
     } catch (error) {
       throw handleApiError(error, 'Signup failed');
@@ -22,14 +26,47 @@ export const authService = {
     }
   },
 
-  // FIX: Calls backend to expire the httpOnly cookie before clearing Redux state.
-  // Errors are swallowed intentionally — if the network is down we still want
-  // the local session cleared so the user isn't stuck.
   logout: async () => {
     try {
       await logoutApi();
     } catch {
-      // Silently continue — local state will still be cleared by the caller
+      // Swallow — local state still clears
+    }
+  },
+
+  verifyEmail: async (token) => {
+    try {
+      const { data } = await verifyEmailApi(token);
+      return data;
+    } catch (error) {
+      throw handleApiError(error, 'Email verification failed');
+    }
+  },
+
+  resendVerification: async (emailId) => {
+    try {
+      const { data } = await resendVerificationApi(emailId);
+      return data;
+    } catch (error) {
+      throw handleApiError(error, 'Failed to resend verification email');
+    }
+  },
+
+  forgotPassword: async (emailId) => {
+    try {
+      const { data } = await forgotPasswordApi(emailId);
+      return data;
+    } catch (error) {
+      throw handleApiError(error, 'Failed to send reset email');
+    }
+  },
+
+  resetPassword: async (token, password) => {
+    try {
+      const { data } = await resetPasswordApi(token, password);
+      return data;
+    } catch (error) {
+      throw handleApiError(error, 'Failed to reset password');
     }
   },
 };
