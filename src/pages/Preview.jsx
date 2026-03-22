@@ -63,10 +63,9 @@ const accentColors = [
   { name: 'Indigo', value: '#6366F1' },
 ];
 
-// Shared className for all dropdown menu items — overrides shadcn's accent hover
-// with a visible purple highlight + white text using [&:hover] to ensure specificity
 const menuItemCls =
   'cursor-pointer gap-2 text-foreground [&:hover]:bg-orange-500/10 [&:hover]:text-orange-400 [&[data-highlighted]]:bg-orange-500/10 [&[data-highlighted]]:text-orange-400';
+
 const Preview = () => {
   const { resumeId } = useParams();
   const navigate = useNavigate();
@@ -74,7 +73,6 @@ const Preview = () => {
   const [zoom, setZoom] = useState(100);
   const [copied, setCopied] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
-  const [viewCount] = useState(() => Math.floor(Math.random() * 500) + 50);
 
   const previewRef = useRef(null);
 
@@ -89,6 +87,14 @@ const Preview = () => {
 
   const activeTemplate = previewTemplate ?? resumeData?.template ?? 'classic';
   const activeColor = previewColor ?? resumeData?.accent_color ?? '#3B82F6';
+
+  // Phase 2 — Fix 5: Real view counter.
+  // Previously: Math.floor(Math.random() * 500) + 50 — regenerated on every render,
+  // meaningless, and actively misleading on a professional tool.
+  // Now: read directly from resumeData.views which is incremented server-side
+  // via $inc in getPublicResumeById. Falls back to 0 for legacy resumes
+  // that don't have the views field yet.
+  const viewCount = resumeData?.views ?? 0;
 
   const handleZoomIn = () => setZoom((p) => Math.min(p + 10, 150));
   const handleZoomOut = () => setZoom((p) => Math.max(p - 10, 50));
@@ -116,7 +122,7 @@ const Preview = () => {
           text: `Check out ${resumeData?.personal_info?.full_name}'s resume`,
           url: shareUrl,
         });
-      } catch (error) {
+      } catch {
         handleCopyLink();
       }
     } else {
@@ -193,7 +199,6 @@ const Preview = () => {
 
   return (
     <div className='min-h-screen bg-muted/30'>
-      {/* Header hidden on PDF export */}
       <div
         data-hide-on-export
         className='bg-background border-b border-border sticky top-0 z-20'
@@ -216,8 +221,11 @@ const Preview = () => {
                   <span className='px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'>
                     Public
                   </span>
+                  {/* Phase 2 — Fix 5: Real view count from server */}
                   <span className='flex items-center gap-1'>
-                    <Eye className='size-3' /> {viewCount} views
+                    <Eye className='size-3' />
+                    {viewCount.toLocaleString()}{' '}
+                    {viewCount === 1 ? 'view' : 'views'}
                   </span>
                 </div>
               </div>

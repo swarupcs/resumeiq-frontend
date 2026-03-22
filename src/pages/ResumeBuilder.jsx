@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   Briefcase,
@@ -29,12 +29,14 @@ import SkillsForm from '@/components/builder/SkillsForm';
 import ResumePreview from '@/components/builder/ResumePreview';
 import TemplateSelector from '@/components/builder/TemplateSelector';
 import ColorPicker from '@/components/builder/ColorPicker';
+import AutosaveStatusBadge from '@/components/builder/AutosaveStatusBadge';
 import { Button } from '@/components/ui/button';
 import { useResumeById } from '@/hooks/resume/useResumeById';
 import { useUpdateResume } from '@/hooks/resume/useUpdateResume';
-
+import { useAutosave } from '@/hooks/resume/useAutosave';
 import { useExportResumePdf } from '@/hooks/resume/useExportResumePdf';
-import { useToggleResumeVisibility } from '@/hooks/resume/UsetToggleresumevisibility.js';
+import { useToggleResumeVisibility } from '@/hooks/resume/useToggleResumeVisibility.js';
+import { resumeService } from '@/services/resume.service.js';
 
 const sections = [
   { id: 'personal', name: 'Personal Info', icon: User },
@@ -60,19 +62,18 @@ const DEFAULT_RESUME = {
 
 const ResumeBuilder = () => {
   const { resumeId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
   const [removeBackground, setRemoveBackground] = useState(false);
 
-  // ─── Fetch ───────────────────────────────────────────────────────────────────────────
+  // ─── Fetch ────────────────────────────────────────────────────────────────
   const { data: fetchedResume, isLoading } = useResumeById(resumeId, {
     onError: (error) => toast.error(error.message || 'Failed to load resume'),
   });
 
-  // ─── Derive mapped resume data ──────────────────────────────────────────────────
   const serverResume = useMemo(() => {
     const resume = fetchedResume?.data?.resume;
     if (!resume) return null;
-
     return {
       _id: resume._id,
       title: resume.title ?? DEFAULT_RESUME.title,
@@ -114,16 +115,13 @@ const ResumeBuilder = () => {
     };
   }, [fetchedResume]);
 
-  // Local overrides layer — user edits are tracked here on top of serverResume
   const [localOverrides, setLocalOverrides] = useState({});
 
-  // Merge: server data as base, local edits on top
   const resumeData = useMemo(
     () => ({ ...DEFAULT_RESUME, ...serverResume, ...localOverrides }),
     [serverResume, localOverrides],
   );
 
-  // Setter that components call — supports both object and functional updater forms
   const setResumeData = (updater) => {
     setLocalOverrides((prev) => {
       const current = { ...DEFAULT_RESUME, ...serverResume, ...prev };
@@ -132,52 +130,85 @@ const ResumeBuilder = () => {
     });
   };
 
-  // ─── Save ───────────────────────────────────────────────────────────────────────────────────
-  const { mutate: updateResume, isPending: isSaving } =
-    useUpdateResume(resumeId);
+  // ─── Save logic ───────────────────────────────────────────────────────────
+  const { mutateAsync: updateResume } = useUpdateResume(resumeId);
 
-  const saveResume = () => {
-    const hasNewImage = resumeData.personal_info?.image instanceof File;
+  // Shared save function used by both autosave and manual save button.
+  // useCallback so useAutosave's onSaveRef stays stable.
+  const performSave = useCallback(
+    async (dataToSave) => {
+      const hasNewImage = dataToSave.personal_info?.image instanceof File;
 
-    const resumeDataToSend = {
-      ...resumeData,
-      personal_info: {
-        ...resumeData.personal_info,
-        ...(hasNewImage ? { image: undefined } : {}),
-      },
-    };
+      const resumeDataToSend = {
+        ...dataToSave,
+        personal_info: {
+          ...dataToSave.personal_info,
+          ...(hasNewImage ? { image: undefined } : {}),
+        },
+      };
 
-    updateResume(
-      {
+      const result = await updateResume({
         resumeId,
         resumeData: resumeDataToSend,
-        image: hasNewImage ? resumeData.personal_info.image : null,
+        image: hasNewImage ? dataToSave.personal_info.image : null,
         removeBackground,
-      },
-      {
-        onSuccess: (data) => {
-          setResumeData((prev) => ({
-            ...prev,
-            personal_info: data.data.resume.personal_info ?? prev.personal_info,
-            public: data.data.resume.isPublic ?? prev.public,
-          }));
-        },
-      },
-    );
-  };
+      });
 
-  // ─── Download PDF ───────────────────────────────────────────────────────────────────
+      // Sync back the server's resolved personal_info (e.g. image URL after upload)
+      setResumeData((prev) => ({
+        ...prev,
+        personal_info: result.data.resume.personal_info ?? prev.personal_info,
+        public: result.data.resume.isPublic ?? prev.public,
+      }));
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [resumeId, removeBackground],
+  );
+
+  // Phase 2 — Fix 1: Autosave.
+  // Debounce 2s after the last change. Disabled until serverResume is loaded
+  // so the initial data population doesn't trigger a spurious save.
+  // Also disabled when a new image File is attached — autosaving with a File
+  // is fine, but it's cleaner to let the user explicitly save with bg-removal
+  // options chosen, so we skip autosave when a local File is pending.
+  const hasLocalImageFile = resumeData.personal_info?.image instanceof File;
+
+  const { autosaveStatus, triggerSave } = useAutosave({
+    data: resumeData,
+    onSave: performSave,
+    delay: 2000,
+    enabled: !!serverResume && !hasLocalImageFile,
+  });
+
+  // Manual save — calls triggerSave which cancels any pending debounce timer
+  // and saves immediately, then resets the status.
+  const handleManualSave = () => triggerSave(resumeData);
+
+  // ─── Download PDF ─────────────────────────────────────────────────────────
   const { mutate: exportPdf, isPending: isExporting } = useExportResumePdf();
 
-const handleDownloadPdf = () => {
-  exportPdf({
-    resumeId,
-    fullName: resumeData.personal_info?.full_name,
-    resumeData, // <-- current frontend state, not DB data
-  });
-};
+  const handleDownloadPdf = () => {
+    exportPdf({
+      resumeId,
+      fullName: resumeData.personal_info?.full_name,
+      resumeData,
+    });
+  };
 
-  // ─── Toggle visibility ─────────────────────────────────────────────────────────────
+  // Auto-trigger download when navigated here with ?download=true
+  useEffect(() => {
+    if (
+      searchParams.get('download') === 'true' &&
+      serverResume &&
+      !isExporting
+    ) {
+      setSearchParams({}, { replace: true });
+      handleDownloadPdf();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverResume]);
+
+  // ─── Visibility ───────────────────────────────────────────────────────────
   const { mutate: toggleVisibility, isPending: isTogglingVisibility } =
     useToggleResumeVisibility();
 
@@ -192,9 +223,9 @@ const handleDownloadPdf = () => {
     });
   };
 
-  // ─── Share ─────────────────────────────────────────────────────────────────────────────────────
+  // ─── Share ────────────────────────────────────────────────────────────────
   const handleShare = () => {
-    const resumeUrl = `${window.location.origin}/view/${resumeId}`;
+    const resumeUrl = `${window.location.origin}/preview/${resumeId}`;
     if (navigator.share) {
       navigator.share({ url: resumeUrl, title: resumeData.title });
     } else {
@@ -217,7 +248,6 @@ const handleDownloadPdf = () => {
     <div className='min-h-screen bg-background'>
       <Navbar />
 
-      {/* Header */}
       <div className='max-w-7xl mx-auto px-4 py-6 mt-16'>
         <Link
           to='/dashboard'
@@ -227,10 +257,9 @@ const handleDownloadPdf = () => {
         </Link>
       </div>
 
-      {/* Main Content */}
       <div className='max-w-7xl mx-auto px-4 pb-8'>
         <div className='grid lg:grid-cols-12 gap-8'>
-          {/* Left Panel - Form */}
+          {/* Left Panel */}
           <div className='relative lg:col-span-5'>
             <div className='bg-card rounded-xl shadow-sm border border-border p-6 pt-4 relative overflow-hidden'>
               {/* Progress Bar */}
@@ -241,7 +270,7 @@ const handleDownloadPdf = () => {
                 />
               </div>
 
-              {/* Section Navigation */}
+              {/* Toolbar */}
               <div className='flex justify-between items-center mb-6 border-b border-border pb-3 pt-2'>
                 <div className='flex items-center gap-2'>
                   <TemplateSelector
@@ -261,7 +290,10 @@ const handleDownloadPdf = () => {
                   />
                 </div>
 
-                <div className='flex items-center'>
+                <div className='flex items-center gap-2'>
+                  {/* Phase 2 — Fix 1: Autosave status badge */}
+                  <AutosaveStatusBadge status={autosaveStatus} />
+
                   {activeSectionIndex !== 0 && (
                     <Button
                       variant='ghost'
@@ -271,7 +303,7 @@ const handleDownloadPdf = () => {
                       }
                       className='text-muted-foreground'
                     >
-                      <ChevronLeft className='size-4 mr-1' /> Previous
+                      <ChevronLeft className='size-4 mr-1' /> Prev
                     </Button>
                   )}
                   <Button
@@ -373,25 +405,24 @@ const handleDownloadPdf = () => {
                 )}
               </div>
 
-              {/* Save Button */}
+              {/* Save Button — still available for explicit saves (e.g. after image upload) */}
               <Button
-                onClick={saveResume}
-                disabled={isSaving}
+                onClick={handleManualSave}
+                disabled={autosaveStatus === 'saving'}
                 className='w-full mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
               >
-                {isSaving ? (
+                {autosaveStatus === 'saving' ? (
                   <Loader2 className='size-4 animate-spin mr-2' />
                 ) : (
                   <Save className='size-4 mr-2' />
                 )}
-                {isSaving ? 'Saving...' : 'Save Changes'}
+                {autosaveStatus === 'saving' ? 'Saving…' : 'Save Changes'}
               </Button>
             </div>
           </div>
 
           {/* Right Panel - Preview */}
           <div className='lg:col-span-7'>
-            {/* Action Buttons */}
             <div className='flex items-center justify-end gap-2 mb-4'>
               {resumeData.public && (
                 <Button
@@ -431,7 +462,7 @@ const handleDownloadPdf = () => {
                 ) : (
                   <Download className='size-4 mr-2' />
                 )}
-                {isExporting ? 'Generating...' : 'Download PDF'}
+                {isExporting ? 'Generating…' : 'Download PDF'}
               </Button>
             </div>
 
