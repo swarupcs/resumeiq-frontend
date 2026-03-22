@@ -11,7 +11,6 @@ import {
   Plus,
   Upload,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ResumeCard } from '@/components/dashboard/ResumeCard';
 import { CreateResumeModal } from '@/components/dashboard/CreateResumeModal';
@@ -39,11 +38,14 @@ const Dashboard = () => {
   const user = useSelector(selectCurrentUser);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('title');
+  const [sortBy, setSortBy] = useState('updated');
   const [viewMode, setViewMode] = useState('grid');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
+
+  // Renamed from editModalOpen → renameModalOpen to make intent clear.
+  // "Edit" now means opening the builder; "Rename" means changing the title.
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedResume, setSelectedResume] = useState(null);
 
@@ -70,8 +72,6 @@ const Dashboard = () => {
     }
   };
 
-  // FIX: Was pointing to /view/:id — now consistently uses /preview/:id
-  // which is the canonical public preview route throughout the app.
   const handleShare = async (resume) => {
     if (!resume.isPublic) {
       toast.error('Make the resume public before sharing');
@@ -82,20 +82,23 @@ const Dashboard = () => {
     toast.success('Resume link copied to clipboard');
   };
 
-  // FIX: Was using /preview/:id for preview but /view/:id for share — both now /preview/:id
+  // Opens the full resume builder for editing content
+  const handleEdit = (resume) => navigate(`/app/builder/${resume._id}`);
+
   const handlePreview = (resume) => navigate(`/preview/${resume._id}`);
+
+  // Card body click = edit (same destination, keeps existing UX)
   const handleCardClick = (resume) => navigate(`/app/builder/${resume._id}`);
 
-  // FIX: Previously navigated to /app/builder/:id?download=true which never fired
-  // the download because ResumeBuilder didn't read the query param.
-  // Now handled in Fix 4 — ResumeBuilder reads this param on mount.
   const handleDownload = (resume) =>
     navigate(`/app/builder/${resume._id}?download=true`);
 
-  const openEditModal = (resume) => {
+  // Opens the rename modal (title-only change)
+  const openRenameModal = (resume) => {
     setSelectedResume(resume);
-    setEditModalOpen(true);
+    setRenameModalOpen(true);
   };
+
   const openDeleteDialog = (resume) => {
     setSelectedResume(resume);
     setDeleteDialogOpen(true);
@@ -315,7 +318,10 @@ const Dashboard = () => {
                 <ResumeCard
                   key={resume._id}
                   resume={resume}
-                  onEdit={openEditModal}
+                  // onEdit → navigate to builder (edit content)
+                  onEdit={handleEdit}
+                  // onRename → open rename modal (title only)
+                  onRename={openRenameModal}
                   onDelete={openDeleteDialog}
                   onClick={handleCardClick}
                   onShare={handleShare}
@@ -338,11 +344,12 @@ const Dashboard = () => {
         open={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
       />
+      {/* Rename modal — title only, not resume content */}
       <EditResumeModal
-        open={editModalOpen}
+        open={renameModalOpen}
         resume={selectedResume}
         onClose={() => {
-          setEditModalOpen(false);
+          setRenameModalOpen(false);
           setSelectedResume(null);
         }}
       />

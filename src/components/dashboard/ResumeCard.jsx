@@ -9,6 +9,7 @@ import {
   Lock,
   MoreVertical,
   Calendar,
+  Edit3,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -27,9 +28,20 @@ const cardGradients = [
   'from-amber-500/10 to-orange-500/10',
 ];
 
+// Props
+// ─────────────────────────────────────────────
+// onEdit(resume)           → opens builder (navigate to /app/builder/:id)
+// onRename(resume)         → opens rename modal
+// onDelete(resume)         → opens delete confirm dialog
+// onClick(resume)          → card body click (same as onEdit)
+// onShare(resume)          → copy public link
+// onDownload(resume)       → trigger PDF download
+// onPreview(resume)        → open public preview page
+// onToggleVisibility(resume) → toggle public/private
 export const ResumeCard = ({
   resume,
   onEdit,
+  onRename,
   onDelete,
   onClick,
   onShare,
@@ -45,11 +57,10 @@ export const ResumeCard = ({
     <div
       onClick={() => onClick(resume)}
       className='group relative rounded-2xl border border-border bg-card cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-transparent overflow-hidden shine'
-      style={{ '--hover-shadow': '0 8px 40px oklch(0.72 0.22 280 / 0.15)' }}
     >
       {/* Gradient top stripe */}
       <div
-        className={`h-1.5 w-full bg-gradient-to-r ${cardGradients[colorIndex]}`}
+        className='h-1.5 w-full'
         style={{
           background: `linear-gradient(90deg, var(--primary), oklch(0.65 0.28 305))`,
           opacity: 0.6,
@@ -65,7 +76,6 @@ export const ResumeCard = ({
         }}
       />
 
-      {/* Card content */}
       <div className='p-5'>
         {/* Top row: badge + menu */}
         <div className='flex items-center justify-between mb-4'>
@@ -102,25 +112,38 @@ export const ResumeCard = ({
               onClick={(e) => e.stopPropagation()}
               className='w-52'
             >
+              {/* Primary action — opens the builder to edit content */}
+              <DropdownMenuItem
+                onClick={() => onEdit(resume)}
+                className='gap-2 font-medium'
+              >
+                <Edit3 className='h-4 w-4' /> Edit Resume
+              </DropdownMenuItem>
+
               <DropdownMenuItem
                 onClick={() => onPreview(resume)}
                 className='gap-2'
               >
                 <Eye className='h-4 w-4' /> Preview
               </DropdownMenuItem>
+
+              {/* Rename is a separate action — only changes the title */}
               <DropdownMenuItem
-                onClick={() => onEdit(resume)}
+                onClick={() => onRename(resume)}
                 className='gap-2'
               >
                 <Pencil className='h-4 w-4' /> Rename
               </DropdownMenuItem>
+
               <DropdownMenuSeparator />
+
               <DropdownMenuItem
                 onClick={() => onDownload(resume)}
                 className='gap-2'
               >
                 <Download className='h-4 w-4' /> Download PDF
               </DropdownMenuItem>
+
               {resume.isPublic && (
                 <DropdownMenuItem
                   onClick={() => onShare(resume)}
@@ -129,6 +152,7 @@ export const ResumeCard = ({
                   <Share2 className='h-4 w-4' /> Share Link
                 </DropdownMenuItem>
               )}
+
               <DropdownMenuItem
                 onClick={() => onToggleVisibility(resume)}
                 className='gap-2'
@@ -143,7 +167,9 @@ export const ResumeCard = ({
                   </>
                 )}
               </DropdownMenuItem>
+
               <DropdownMenuSeparator />
+
               <DropdownMenuItem
                 onClick={() => onDelete(resume)}
                 className='text-destructive focus:text-destructive gap-2'
@@ -182,8 +208,19 @@ export const ResumeCard = ({
           </span>
         </div>
 
-        {/* Hover action buttons */}
+        {/* Hover action buttons — Edit and Preview as primary quick actions */}
         <div className='flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0'>
+          {/* Edit button opens the builder */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(resume);
+            }}
+            className='flex-1 py-2 px-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium transition-colors flex items-center justify-center gap-1.5 border border-primary/20 hover:border-primary/40'
+          >
+            <Edit3 className='h-3.5 w-3.5' /> Edit
+          </button>
+
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -192,15 +229,6 @@ export const ResumeCard = ({
             className='flex-1 py-2 px-3 rounded-xl bg-secondary hover:bg-primary/10 hover:text-primary text-xs font-medium text-foreground transition-colors flex items-center justify-center gap-1.5 border border-border hover:border-primary/30'
           >
             <Eye className='h-3.5 w-3.5' /> Preview
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDownload(resume);
-            }}
-            className='flex-1 py-2 px-3 rounded-xl bg-secondary hover:bg-primary/10 hover:text-primary text-xs font-medium text-foreground transition-colors flex items-center justify-center gap-1.5 border border-border hover:border-primary/30'
-          >
-            <Download className='h-3.5 w-3.5' /> Download
           </button>
         </div>
       </div>
