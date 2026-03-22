@@ -1,23 +1,10 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
-  ArrowLeft,
-  Briefcase,
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  Eye,
-  EyeOff,
-  FileText,
-  FolderIcon,
-  GraduationCap,
-  Share2,
-  Sparkles,
-  User,
-  Save,
-  Loader2,
-  Undo2,
-  Redo2,
+  ArrowLeft, Briefcase, ChevronLeft, ChevronRight,
+  Download, Eye, EyeOff, FileText, FolderIcon,
+  GraduationCap, Share2, Sparkles, User, Save,
+  Loader2, Undo2, Redo2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -42,12 +29,12 @@ import { useExportResumePdf } from '@/hooks/resume/useExportResumePdf';
 import { useToggleResumeVisibility } from '@/hooks/resume/useToggleResumeVisibility.js';
 
 const sections = [
-  { id: 'personal', name: 'Personal Info', icon: User },
-  { id: 'summary', name: 'Summary', icon: FileText },
-  { id: 'experience', name: 'Experience', icon: Briefcase },
-  { id: 'education', name: 'Education', icon: GraduationCap },
-  { id: 'projects', name: 'Projects', icon: FolderIcon },
-  { id: 'skills', name: 'Skills', icon: Sparkles },
+  { id: 'personal',   name: 'Personal Info', icon: User },
+  { id: 'summary',    name: 'Summary',       icon: FileText },
+  { id: 'experience', name: 'Experience',    icon: Briefcase },
+  { id: 'education',  name: 'Education',     icon: GraduationCap },
+  { id: 'projects',   name: 'Projects',      icon: FolderIcon },
+  { id: 'skills',     name: 'Skills',        icon: Sparkles },
 ];
 
 const DEFAULT_RESUME = {
@@ -78,43 +65,43 @@ const ResumeBuilder = () => {
     const resume = fetchedResume?.data?.resume;
     if (!resume) return null;
     return {
-      _id: resume._id,
+      _id:   resume._id,
       title: resume.title ?? DEFAULT_RESUME.title,
       personal_info: {
-        full_name: resume.personal_info?.full_name ?? '',
-        email: resume.personal_info?.email ?? '',
-        phone: resume.personal_info?.phone ?? '',
-        location: resume.personal_info?.location ?? '',
+        full_name:  resume.personal_info?.full_name  ?? '',
+        email:      resume.personal_info?.email      ?? '',
+        phone:      resume.personal_info?.phone      ?? '',
+        location:   resume.personal_info?.location   ?? '',
         profession: resume.personal_info?.profession ?? '',
-        linkedin: resume.personal_info?.linkedin ?? '',
-        website: resume.personal_info?.website ?? '',
-        image: resume.personal_info?.image ?? '',
+        linkedin:   resume.personal_info?.linkedin   ?? '',
+        website:    resume.personal_info?.website    ?? '',
+        image:      resume.personal_info?.image      ?? '',
       },
       professional_summary: resume.professional_summary ?? '',
       experience: (resume.experience ?? []).map((exp) => ({
-        company: exp.company ?? '',
-        position: exp.position ?? '',
-        start_date: exp.start_date ?? '',
-        end_date: exp.end_date ?? '',
+        company:     exp.company     ?? '',
+        position:    exp.position    ?? '',
+        start_date:  exp.start_date  ?? '',
+        end_date:    exp.end_date    ?? '',
         description: exp.description ?? '',
-        is_current: exp.is_current ?? false,
+        is_current:  exp.is_current  ?? false,
       })),
       education: (resume.education ?? []).map((edu) => ({
-        institution: edu.institution ?? '',
-        degree: edu.degree ?? '',
-        field: edu.field ?? '',
+        institution:     edu.institution     ?? '',
+        degree:          edu.degree          ?? '',
+        field:           edu.field           ?? '',
         graduation_date: edu.graduation_date ?? '',
-        gpa: edu.gpa ?? '',
+        gpa:             edu.gpa             ?? '',
       })),
       project: (resume.project ?? []).map((proj) => ({
-        name: proj.name ?? '',
-        type: proj.type ?? '',
+        name:        proj.name        ?? '',
+        type:        proj.type        ?? '',
         description: proj.description ?? '',
       })),
-      skills: (resume.skills ?? []).map((s) => String(s)),
-      template: resume.template ?? DEFAULT_RESUME.template,
+      skills:       (resume.skills ?? []).map((s) => String(s)),
+      template:     resume.template     ?? DEFAULT_RESUME.template,
       accent_color: resume.accent_color ?? DEFAULT_RESUME.accent_color,
-      public: resume.isPublic ?? DEFAULT_RESUME.public,
+      public:       resume.isPublic     ?? DEFAULT_RESUME.public,
     };
   }, [fetchedResume]);
 
@@ -122,10 +109,8 @@ const ResumeBuilder = () => {
   const {
     state: localOverrides,
     setState: setLocalOverrides,
-    undo,
-    redo,
-    canUndo,
-    canRedo,
+    undo, redo,
+    canUndo, canRedo,
     clearHistory,
   } = useUndoRedo({});
 
@@ -147,19 +132,14 @@ const ResumeBuilder = () => {
       const isMac = navigator.platform.toUpperCase().includes('MAC');
       const ctrl = isMac ? e.metaKey : e.ctrlKey;
       if (!ctrl) return;
-      if (e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        if (canUndo) undo();
-      } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
-        e.preventDefault();
-        if (canRedo) redo();
-      }
+      if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); if (canUndo) undo(); }
+      else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); if (canRedo) redo(); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo, canUndo, canRedo]);
 
-  // ─── Save logic ───────────────────────────────────────────────────────────
+  // ─── Save ─────────────────────────────────────────────────────────────────
   const { mutateAsync: updateResume } = useUpdateResume(resumeId);
 
   const performSave = useCallback(
@@ -181,7 +161,7 @@ const ResumeBuilder = () => {
       setResumeData((prev) => ({
         ...prev,
         personal_info: result.data.resume.personal_info ?? prev.personal_info,
-        public: result.data.resume.isPublic ?? prev.public,
+        public:        result.data.resume.isPublic       ?? prev.public,
       }));
       clearHistory();
     },
@@ -191,19 +171,13 @@ const ResumeBuilder = () => {
 
   const hasLocalImageFile = resumeData.personal_info?.image instanceof File;
 
-  // Bugfix: `enabled` only becomes true once serverResume is loaded.
-  // useAutosave captures a baseline at that moment — the initial server data —
-  // and will not fire a save if the current data still matches that baseline.
-  // This prevents the spurious save-on-load that was happening 2-3 times.
   const { autosaveStatus, triggerSave, resetBaseline } = useAutosave({
-    data: resumeData,
-    onSave: performSave,
-    delay: 2000,
+    data:    resumeData,
+    onSave:  performSave,
+    delay:   2000,
     enabled: !!serverResume && !hasLocalImageFile,
   });
 
-  // After a successful manual save, reset the autosave baseline so subsequent
-  // comparisons are against the freshly saved state.
   const handleManualSave = async () => {
     await triggerSave(resumeData);
     resetBaseline(resumeData);
@@ -214,19 +188,11 @@ const ResumeBuilder = () => {
   const { mutate: exportPdf, isPending: isExporting } = useExportResumePdf();
 
   const handleDownloadPdf = () => {
-    exportPdf({
-      resumeId,
-      fullName: resumeData.personal_info?.full_name,
-      resumeData,
-    });
+    exportPdf({ resumeId, fullName: resumeData.personal_info?.full_name, resumeData });
   };
 
   useEffect(() => {
-    if (
-      searchParams.get('download') === 'true' &&
-      serverResume &&
-      !isExporting
-    ) {
+    if (searchParams.get('download') === 'true' && serverResume && !isExporting) {
       setSearchParams({}, { replace: true });
       handleDownloadPdf();
     }
@@ -240,10 +206,7 @@ const ResumeBuilder = () => {
   const changeResumeVisibility = () => {
     toggleVisibility(resumeId, {
       onSuccess: (data) => {
-        setResumeData((prev) => ({
-          ...prev,
-          public: data.data.resume.isPublic,
-        }));
+        setResumeData((prev) => ({ ...prev, public: data.data.resume.isPublic }));
       },
     });
   };
@@ -274,20 +237,17 @@ const ResumeBuilder = () => {
       <Navbar />
 
       <div className='max-w-7xl mx-auto px-4 py-6 mt-16'>
-        <Link
-          to='/dashboard'
-          className='inline-flex gap-2 items-center text-muted-foreground hover:text-foreground transition-colors'
-        >
+        <Link to='/dashboard' className='inline-flex gap-2 items-center text-muted-foreground hover:text-foreground transition-colors'>
           <ArrowLeft className='size-4' /> Back to Dashboard
         </Link>
       </div>
 
       <div className='max-w-7xl mx-auto px-4 pb-8'>
         <div className='grid lg:grid-cols-12 gap-8'>
+
           {/* ── Left Panel ──────────────────────────────────────────── */}
           <div className='relative lg:col-span-5'>
             <div className='bg-card rounded-xl shadow-sm border border-border p-6 pt-4 relative overflow-hidden'>
-              {/* Progress Bar */}
               <div className='absolute top-0 left-0 right-0 h-1 bg-muted'>
                 <div
                   className='h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500'
@@ -298,8 +258,11 @@ const ResumeBuilder = () => {
               {/* Toolbar */}
               <div className='flex justify-between items-center mb-6 border-b border-border pb-3 pt-2'>
                 <div className='flex items-center gap-2'>
+                  {/* Phase 4 — Feature 1: Pass accentColor to TemplateSelector
+                      so the live thumbnails reflect the current accent color */}
                   <TemplateSelector
                     selectedTemplate={resumeData.template}
+                    accentColor={resumeData.accent_color}
                     onChange={(template) =>
                       setResumeData((prev) => ({ ...prev, template }))
                     }
@@ -307,28 +270,21 @@ const ResumeBuilder = () => {
                   <ColorPicker
                     selectedColor={resumeData.accent_color}
                     onChange={(color) =>
-                      setResumeData((prev) => ({
-                        ...prev,
-                        accent_color: color,
-                      }))
+                      setResumeData((prev) => ({ ...prev, accent_color: color }))
                     }
                   />
                   <div className='flex items-center gap-1'>
                     <Button
-                      variant='ghost'
-                      size='icon'
-                      onClick={undo}
-                      disabled={!canUndo}
+                      variant='ghost' size='icon'
+                      onClick={undo} disabled={!canUndo}
                       className='h-8 w-8 text-muted-foreground hover:text-foreground'
                       title='Undo (Ctrl+Z)'
                     >
                       <Undo2 className='size-3.5' />
                     </Button>
                     <Button
-                      variant='ghost'
-                      size='icon'
-                      onClick={redo}
-                      disabled={!canRedo}
+                      variant='ghost' size='icon'
+                      onClick={redo} disabled={!canRedo}
                       className='h-8 w-8 text-muted-foreground hover:text-foreground'
                       title='Redo (Ctrl+Y)'
                     >
@@ -340,24 +296,16 @@ const ResumeBuilder = () => {
                 <div className='flex items-center gap-2'>
                   <AutosaveStatusBadge status={autosaveStatus} />
                   {activeSectionIndex !== 0 && (
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      onClick={() =>
-                        setActiveSectionIndex((p) => Math.max(p - 1, 0))
-                      }
+                    <Button variant='ghost' size='sm'
+                      onClick={() => setActiveSectionIndex((p) => Math.max(p - 1, 0))}
                       className='text-muted-foreground'
                     >
                       <ChevronLeft className='size-4 mr-1' /> Prev
                     </Button>
                   )}
-                  <Button
-                    variant='ghost'
-                    size='sm'
+                  <Button variant='ghost' size='sm'
                     onClick={() =>
-                      setActiveSectionIndex((p) =>
-                        Math.min(p + 1, sections.length - 1),
-                      )
+                      setActiveSectionIndex((p) => Math.min(p + 1, sections.length - 1))
                     }
                     disabled={activeSectionIndex === sections.length - 1}
                     className='text-muted-foreground'
@@ -395,12 +343,7 @@ const ResumeBuilder = () => {
                 {sections[activeSectionIndex].id === 'personal' && (
                   <PersonalInfoForm
                     data={resumeData.personal_info}
-                    onChange={(data) =>
-                      setResumeData((prev) => ({
-                        ...prev,
-                        personal_info: data,
-                      }))
-                    }
+                    onChange={(data) => setResumeData((prev) => ({ ...prev, personal_info: data }))}
                     removeBackground={removeBackground}
                     setRemoveBackground={setRemoveBackground}
                   />
@@ -408,59 +351,44 @@ const ResumeBuilder = () => {
                 {sections[activeSectionIndex].id === 'summary' && (
                   <ProfessionalSummaryForm
                     data={resumeData.professional_summary}
-                    onChange={(data) =>
-                      setResumeData((prev) => ({
-                        ...prev,
-                        professional_summary: data,
-                      }))
-                    }
+                    onChange={(data) => setResumeData((prev) => ({ ...prev, professional_summary: data }))}
                   />
                 )}
                 {sections[activeSectionIndex].id === 'experience' && (
                   <ExperienceForm
                     data={resumeData.experience}
-                    onChange={(data) =>
-                      setResumeData((prev) => ({ ...prev, experience: data }))
-                    }
+                    onChange={(data) => setResumeData((prev) => ({ ...prev, experience: data }))}
                   />
                 )}
                 {sections[activeSectionIndex].id === 'education' && (
                   <EducationForm
                     data={resumeData.education}
-                    onChange={(data) =>
-                      setResumeData((prev) => ({ ...prev, education: data }))
-                    }
+                    onChange={(data) => setResumeData((prev) => ({ ...prev, education: data }))}
                   />
                 )}
                 {sections[activeSectionIndex].id === 'projects' && (
                   <ProjectForm
                     data={resumeData.project}
-                    onChange={(data) =>
-                      setResumeData((prev) => ({ ...prev, project: data }))
-                    }
+                    onChange={(data) => setResumeData((prev) => ({ ...prev, project: data }))}
                   />
                 )}
                 {sections[activeSectionIndex].id === 'skills' && (
                   <SkillsForm
                     data={resumeData.skills}
-                    onChange={(data) =>
-                      setResumeData((prev) => ({ ...prev, skills: data }))
-                    }
+                    onChange={(data) => setResumeData((prev) => ({ ...prev, skills: data }))}
                   />
                 )}
               </div>
 
-              {/* Save Button */}
               <Button
                 onClick={handleManualSave}
                 disabled={autosaveStatus === 'saving'}
                 className='w-full mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
               >
-                {autosaveStatus === 'saving' ? (
-                  <Loader2 className='size-4 animate-spin mr-2' />
-                ) : (
-                  <Save className='size-4 mr-2' />
-                )}
+                {autosaveStatus === 'saving'
+                  ? <Loader2 className='size-4 animate-spin mr-2' />
+                  : <Save className='size-4 mr-2' />
+                }
                 {autosaveStatus === 'saving' ? 'Saving…' : 'Save Changes'}
               </Button>
             </div>
@@ -470,43 +398,32 @@ const ResumeBuilder = () => {
           <div className='lg:col-span-7 space-y-4'>
             <div className='flex items-center justify-end gap-2'>
               {resumeData.public && (
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={handleShare}
+                <Button variant='outline' size='sm' onClick={handleShare}
                   className='bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800'
                 >
                   <Share2 className='size-4 mr-2' /> Share
                 </Button>
               )}
-              <Button
-                variant='outline'
-                size='sm'
+              <Button variant='outline' size='sm'
                 onClick={changeResumeVisibility}
                 disabled={isTogglingVisibility}
                 className='bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800'
               >
-                {isTogglingVisibility ? (
-                  <Loader2 className='size-4 mr-2 animate-spin' />
-                ) : resumeData.public ? (
-                  <Eye className='size-4 mr-2' />
-                ) : (
-                  <EyeOff className='size-4 mr-2' />
-                )}
+                {isTogglingVisibility
+                  ? <Loader2 className='size-4 mr-2 animate-spin' />
+                  : resumeData.public ? <Eye className='size-4 mr-2' /> : <EyeOff className='size-4 mr-2' />
+                }
                 {resumeData.public ? 'Public' : 'Private'}
               </Button>
-              <Button
-                variant='outline'
-                size='sm'
+              <Button variant='outline' size='sm'
                 onClick={handleDownloadPdf}
                 disabled={isExporting}
                 className='bg-green-50 text-green-600 border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800 disabled:opacity-50'
               >
-                {isExporting ? (
-                  <Loader2 className='size-4 mr-2 animate-spin' />
-                ) : (
-                  <Download className='size-4 mr-2' />
-                )}
+                {isExporting
+                  ? <Loader2 className='size-4 mr-2 animate-spin' />
+                  : <Download className='size-4 mr-2' />
+                }
                 {isExporting ? 'Generating…' : 'Download PDF'}
               </Button>
             </div>
@@ -519,6 +436,7 @@ const ResumeBuilder = () => {
 
             <CompletenessScore resumeData={resumeData} />
           </div>
+
         </div>
       </div>
     </div>

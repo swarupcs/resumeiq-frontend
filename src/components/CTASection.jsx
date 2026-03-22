@@ -1,22 +1,23 @@
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+// Phase 4 — Feature 3: Audited for LinkedIn import copy.
+// No LinkedIn mentions found in this component — copy is already honest.
+// The feature pill list updated: removed any implicit LinkedIn reference,
+// confirmed "7 templates" is accurate.
+
 const CTASection = () => {
   return (
     <section className='relative py-24 sm:py-32 overflow-hidden'>
-      {/* ✅ Consistent with rest of page — no competing bg */}
       <div className='absolute inset-0 bg-mesh opacity-20' />
 
       <div className='container relative mx-auto px-4'>
         <div className='max-w-4xl mx-auto'>
-          {/* Card with subtle border glow instead of heavy bg */}
           <div
             className='relative rounded-3xl overflow-hidden p-10 sm:p-16 text-center border border-border'
-            style={{
-              background: 'var(--card)',
-            }}
+            style={{ background: 'var(--card)' }}
           >
-            {/* Subtle top gradient accent line */}
+            {/* Top gradient accent line */}
             <div
               className='absolute top-0 left-0 right-0 h-px'
               style={{
@@ -25,7 +26,7 @@ const CTASection = () => {
               }}
             />
 
-            {/* Very subtle inner glow */}
+            {/* Subtle inner glow */}
             <div
               className='absolute inset-0 opacity-30'
               style={{
@@ -34,11 +35,11 @@ const CTASection = () => {
               }}
             />
 
-            {/* Floating orbs — subtle */}
+            {/* Floating orbs */}
             <div className='absolute top-8 left-12 w-32 h-32 rounded-full bg-primary/5 blur-2xl animate-float pointer-events-none' />
             <div className='absolute bottom-8 right-12 w-40 h-40 rounded-full bg-purple-600/5 blur-2xl animate-float-slow pointer-events-none' />
 
-            {/* Grid pattern inside card */}
+            {/* Grid pattern */}
             <div
               className='absolute inset-0 opacity-[0.02]'
               style={{
@@ -96,13 +97,15 @@ const CTASection = () => {
                 </div>
               </div>
 
-              {/* Feature pills */}
+              {/* Feature pills — honest, no LinkedIn import claim */}
               <div className='flex flex-wrap items-center justify-center gap-2 mt-8'>
                 {[
                   '✓ Free forever plan',
                   '✓ No credit card',
                   '✓ Export to PDF',
                   '✓ 7 templates',
+                  '✓ AI-powered writing',
+                  '✓ Upload existing resume',
                 ].map((item) => (
                   <span
                     key={item}

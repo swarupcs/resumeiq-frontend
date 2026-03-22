@@ -6,13 +6,18 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 
+// Phase 4 — Feature 3: Remove false LinkedIn import promise.
+// The previous copy said "Upload your existing resume or LinkedIn profile"
+// implying LinkedIn import works — it doesn't exist yet (it's Phase 5).
+// Updated to honest copy: "Upload your existing resume or start from scratch".
+
 const steps = [
   {
     icon: Upload,
     number: '01',
     title: 'Import Your Details',
     description:
-      'Upload your existing resume or LinkedIn profile, or start fresh by entering your information.',
+      'Upload your existing resume as a PDF to auto-fill your details, or start fresh by entering your information manually.',
     color: 'from-blue-500 to-cyan-400',
     dotColor: 'bg-blue-500',
   },
@@ -21,7 +26,7 @@ const steps = [
     number: '02',
     title: 'AI Enhancement',
     description:
-      'Our AI analyzes your experience and the target job to craft compelling, optimized content.',
+      'Our AI analyses your experience and crafts compelling, ATS-optimised content — including job descriptions and your professional summary.',
     color: 'from-primary to-purple-600',
     dotColor: 'bg-primary',
   },
@@ -30,7 +35,7 @@ const steps = [
     number: '03',
     title: 'Download & Apply',
     description:
-      'Choose your template, make final tweaks, and download your polished resume in PDF format.',
+      'Choose your template, pick an accent colour, make final tweaks, and download your polished resume in PDF format.',
     color: 'from-emerald-500 to-teal-400',
     dotColor: 'bg-emerald-500',
   },
@@ -38,11 +43,7 @@ const steps = [
 
 const HowItWorksSection = () => {
   return (
-    <section
-      id='how-it-works'
-      className='relative py-24 sm:py-32 overflow-hidden'
-    >
-      {/* Background */}
+    <section id='how-it-works' className='relative py-24 sm:py-32 overflow-hidden'>
       <div className='absolute inset-0 bg-secondary/20' />
       <div className='absolute inset-0 bg-mesh opacity-20' />
 
@@ -90,7 +91,6 @@ const HowItWorksSection = () => {
           <div className='grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-8'>
             {steps.map((step, index) => (
               <div key={step.number} className='relative group'>
-                {/* Arrow (between steps on desktop) */}
                 {index < steps.length - 1 && (
                   <div className='hidden lg:flex absolute top-[3rem] -right-4 z-10 w-8 h-8 items-center justify-center rounded-full bg-card border border-border shadow-sm'>
                     <ArrowRight className='h-3.5 w-3.5 text-muted-foreground' />
@@ -98,20 +98,15 @@ const HowItWorksSection = () => {
                 )}
 
                 <div className='text-center'>
-                  {/* Step number badge + icon */}
                   <div className='relative inline-flex items-center justify-center mb-6'>
-                    {/* Glow */}
                     <div
                       className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${step.color} blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500 scale-150`}
                     />
-
                     <div
                       className={`relative w-20 h-20 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-xl transition-transform duration-300 group-hover:-translate-y-1`}
                     >
                       <step.icon className='h-8 w-8 text-white' />
                     </div>
-
-                    {/* Step number */}
                     <span className='absolute -top-3 -right-3 flex items-center justify-center w-8 h-8 rounded-xl bg-card border-2 border-border font-display font-black text-xs text-foreground shadow-sm'>
                       {step.number}
                     </span>
@@ -124,7 +119,6 @@ const HowItWorksSection = () => {
                     {step.description}
                   </p>
 
-                  {/* Connector line (mobile) */}
                   {index < steps.length - 1 && (
                     <div className='lg:hidden flex justify-center mt-8'>
                       <div className='w-px h-8 bg-gradient-to-b from-border to-transparent' />

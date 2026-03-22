@@ -1,65 +1,43 @@
-import { useState, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  ArrowLeft,
-  Loader2,
-  FileX,
-  Download,
-  Share2,
-  Printer,
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
-  Copy,
-  Check,
-  ExternalLink,
-  Mail,
-  Linkedin,
-  Twitter,
-  QrCode,
-  Eye,
-  Palette,
-  Layout,
-  ChevronDown,
+  ArrowLeft, Loader2, FileX, Download, Share2,
+  Printer, ZoomIn, ZoomOut, Maximize2, Copy, Check,
+  ExternalLink, Mail, Linkedin, Twitter, QrCode,
+  Eye, Palette, Layout, ChevronDown,
 } from 'lucide-react';
 import ResumePreview from '@/components/builder/ResumePreview';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { usePublicResumeById } from '@/hooks/resume/usePublicResumeById.js';
 import { useExportResumePdfPublic } from '@/hooks/resume/useExportResumePdfPublic.js';
 
 const templates = [
-  { id: 'classic', name: 'Classic' },
-  { id: 'modern', name: 'Modern' },
-  { id: 'minimal', name: 'Minimal' },
+  { id: 'classic',       name: 'Classic' },
+  { id: 'modern',        name: 'Modern' },
+  { id: 'minimal',       name: 'Minimal' },
   { id: 'minimal-image', name: 'Minimal Image' },
-  { id: 'executive', name: 'Executive' },
-  { id: 'creative', name: 'Creative' },
-  { id: 'professional', name: 'Professional' },
+  { id: 'executive',     name: 'Executive' },
+  { id: 'creative',      name: 'Creative' },
+  { id: 'professional',  name: 'Professional' },
 ];
 
 const accentColors = [
-  { name: 'Blue', value: '#3B82F6' },
-  { name: 'Green', value: '#10B981' },
+  { name: 'Blue',   value: '#3B82F6' },
+  { name: 'Green',  value: '#10B981' },
   { name: 'Purple', value: '#8B5CF6' },
-  { name: 'Red', value: '#EF4444' },
+  { name: 'Red',    value: '#EF4444' },
   { name: 'Orange', value: '#F97316' },
-  { name: 'Teal', value: '#14B8A6' },
-  { name: 'Pink', value: '#EC4899' },
+  { name: 'Teal',   value: '#14B8A6' },
+  { name: 'Pink',   value: '#EC4899' },
   { name: 'Indigo', value: '#6366F1' },
 ];
 
@@ -70,40 +48,52 @@ const Preview = () => {
   const { resumeId } = useParams();
   const navigate = useNavigate();
 
+  // Phase 4 — Feature 2: ?download deep-link
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [zoom, setZoom] = useState(100);
   const [copied, setCopied] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
-
   const previewRef = useRef(null);
 
   const { data: response, isLoading, isError } = usePublicResumeById(resumeId);
   const resumeData = response?.data?.resume ?? null;
 
-  const { mutate: exportPdf, isPending: isDownloading } =
-    useExportResumePdfPublic();
+  const { mutate: exportPdf, isPending: isDownloading } = useExportResumePdfPublic();
 
   const [previewTemplate, setPreviewTemplate] = useState(null);
   const [previewColor, setPreviewColor] = useState(null);
 
   const activeTemplate = previewTemplate ?? resumeData?.template ?? 'classic';
-  const activeColor = previewColor ?? resumeData?.accent_color ?? '#3B82F6';
+  const activeColor    = previewColor    ?? resumeData?.accent_color ?? '#3B82F6';
 
-  // Phase 2 — Fix 5: Real view counter.
-  // Previously: Math.floor(Math.random() * 500) + 50 — regenerated on every render,
-  // meaningless, and actively misleading on a professional tool.
-  // Now: read directly from resumeData.views which is incremented server-side
-  // via $inc in getPublicResumeById. Falls back to 0 for legacy resumes
-  // that don't have the views field yet.
+  // Real view counter from server (Phase 2)
   const viewCount = resumeData?.views ?? 0;
-
-  const handleZoomIn = () => setZoom((p) => Math.min(p + 10, 150));
-  const handleZoomOut = () => setZoom((p) => Math.max(p - 10, 50));
-  const handleResetZoom = () => setZoom(100);
-  const handlePrint = () => window.print();
 
   const handleDownload = () => {
     exportPdf({ resumeId, fullName: resumeData?.personal_info?.full_name });
   };
+
+  // Phase 4 — Feature 2: Auto-trigger download when ?download=true is in URL.
+  // Useful for email sharing flows: send /preview/:id?download=true and the
+  // recipient's browser will immediately start the PDF download after the page
+  // loads. Cleans up the param so a refresh doesn't re-trigger.
+  useEffect(() => {
+    if (
+      searchParams.get('download') === 'true' &&
+      resumeData &&
+      !isDownloading
+    ) {
+      setSearchParams({}, { replace: true });
+      handleDownload();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeData]);
+
+  const handleZoomIn  = () => setZoom((p) => Math.min(p + 10, 150));
+  const handleZoomOut = () => setZoom((p) => Math.max(p - 10, 50));
+  const handleResetZoom = () => setZoom(100);
+  const handlePrint = () => window.print();
 
   const shareUrl = `${window.location.origin}/preview/${resumeId}`;
 
@@ -119,22 +109,18 @@ const Preview = () => {
       try {
         await navigator.share({
           title: resumeData?.title || 'Resume',
-          text: `Check out ${resumeData?.personal_info?.full_name}'s resume`,
-          url: shareUrl,
+          text:  `Check out ${resumeData?.personal_info?.full_name}'s resume`,
+          url:   shareUrl,
         });
-      } catch {
-        handleCopyLink();
-      }
+      } catch { handleCopyLink(); }
     } else {
       handleCopyLink();
     }
   };
 
   const handleEmailShare = () => {
-    const subject = encodeURIComponent(
-      `${resumeData?.personal_info?.full_name}'s Resume`,
-    );
-    const body = encodeURIComponent(`Check out this resume: ${shareUrl}`);
+    const subject = encodeURIComponent(`${resumeData?.personal_info?.full_name}'s Resume`);
+    const body    = encodeURIComponent(`Check out this resume: ${shareUrl}`);
     window.open(`mailto:?subject=${subject}&body=${body}`);
   };
 
@@ -183,14 +169,10 @@ const Preview = () => {
             Resume Not Found
           </h1>
           <p className='text-muted-foreground mb-8 max-w-md'>
-            This resume may be private or doesn't exist. Please check the link
-            and try again.
+            This resume may be private or doesn't exist. Please check the link and try again.
           </p>
           <Button asChild>
-            <Link to='/'>
-              <ArrowLeft className='mr-2 h-4 w-4' />
-              Go to Home
-            </Link>
+            <Link to='/'><ArrowLeft className='mr-2 h-4 w-4' />Go to Home</Link>
           </Button>
         </div>
       </div>
@@ -199,10 +181,8 @@ const Preview = () => {
 
   return (
     <div className='min-h-screen bg-muted/30'>
-      <div
-        data-hide-on-export
-        className='bg-background border-b border-border sticky top-0 z-20'
-      >
+      {/* Header */}
+      <div data-hide-on-export className='bg-background border-b border-border sticky top-0 z-20'>
         <div className='max-w-7xl mx-auto px-4 py-3'>
           <div className='flex items-center justify-between gap-4'>
             <div className='flex items-center gap-4 min-w-0'>
@@ -221,11 +201,9 @@ const Preview = () => {
                   <span className='px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'>
                     Public
                   </span>
-                  {/* Phase 2 — Fix 5: Real view count from server */}
                   <span className='flex items-center gap-1'>
                     <Eye className='size-3' />
-                    {viewCount.toLocaleString()}{' '}
-                    {viewCount === 1 ? 'view' : 'views'}
+                    {viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}
                   </span>
                 </div>
               </div>
@@ -235,14 +213,8 @@ const Preview = () => {
               {/* Template Switcher */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='hidden md:flex gap-2'
-                  >
-                    <Layout className='size-4' />
-                    Template
-                    <ChevronDown className='size-3' />
+                  <Button variant='outline' size='sm' className='hidden md:flex gap-2'>
+                    <Layout className='size-4' /> Template <ChevronDown className='size-3' />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align='end' className='w-44'>
@@ -251,15 +223,11 @@ const Preview = () => {
                       key={t.id}
                       onClick={() => setPreviewTemplate(t.id)}
                       className={`${menuItemCls} ${
-                        activeTemplate === t.id
-                          ? 'bg-primary/20 text-primary font-medium'
-                          : ''
+                        activeTemplate === t.id ? 'bg-primary/20 text-primary font-medium' : ''
                       }`}
                     >
                       {t.name}
-                      {activeTemplate === t.id && (
-                        <Check className='size-4 ml-auto text-primary' />
-                      )}
+                      {activeTemplate === t.id && <Check className='size-4 ml-auto text-primary' />}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -268,16 +236,9 @@ const Preview = () => {
               {/* Color Switcher */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='hidden md:flex gap-2'
-                  >
+                  <Button variant='outline' size='sm' className='hidden md:flex gap-2'>
                     <Palette className='size-4' />
-                    <div
-                      className='size-4 rounded-full border border-border'
-                      style={{ backgroundColor: activeColor }}
-                    />
+                    <div className='size-4 rounded-full border border-border' style={{ backgroundColor: activeColor }} />
                     <ChevronDown className='size-3' />
                   </Button>
                 </DropdownMenuTrigger>
@@ -309,73 +270,40 @@ const Preview = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align='end' className='w-56'>
-                  <DropdownMenuItem
-                    onClick={handleCopyLink}
-                    className={menuItemCls}
-                  >
-                    {copied ? (
-                      <Check className='size-4 text-green-500' />
-                    ) : (
-                      <Copy className='size-4' />
-                    )}
+                  <DropdownMenuItem onClick={handleCopyLink} className={menuItemCls}>
+                    {copied ? <Check className='size-4 text-green-500' /> : <Copy className='size-4' />}
                     {copied ? 'Copied!' : 'Copy Link'}
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={handleShare}
-                    className={menuItemCls}
-                  >
+                  <DropdownMenuItem onClick={handleShare} className={menuItemCls}>
                     <ExternalLink className='size-4' /> Share via...
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleEmailShare}
-                    className={menuItemCls}
-                  >
+                  <DropdownMenuItem onClick={handleEmailShare} className={menuItemCls}>
                     <Mail className='size-4' /> Share via Email
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={handleLinkedInShare}
-                    className={menuItemCls}
-                  >
+                  <DropdownMenuItem onClick={handleLinkedInShare} className={menuItemCls}>
                     <Linkedin className='size-4' /> Share on LinkedIn
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={handleTwitterShare}
-                    className={menuItemCls}
-                  >
+                  <DropdownMenuItem onClick={handleTwitterShare} className={menuItemCls}>
                     <Twitter className='size-4' /> Share on Twitter
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => setShowQRModal(true)}
-                    className={menuItemCls}
-                  >
+                  <DropdownMenuItem onClick={() => setShowQRModal(true)} className={menuItemCls}>
                     <QrCode className='size-4' /> Show QR Code
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={handlePrint}
-                className='hidden sm:flex gap-2'
-              >
+              <Button variant='outline' size='sm' onClick={handlePrint} className='hidden sm:flex gap-2'>
                 <Printer className='size-4' />
                 <span className='hidden md:inline'>Print</span>
               </Button>
 
-              <Button
-                size='sm'
-                onClick={handleDownload}
-                disabled={isDownloading}
-                className='gap-2'
-              >
-                {isDownloading ? (
-                  <Loader2 className='size-4 animate-spin' />
-                ) : (
-                  <Download className='size-4' />
-                )}
+              <Button size='sm' onClick={handleDownload} disabled={isDownloading} className='gap-2'>
+                {isDownloading
+                  ? <Loader2 className='size-4 animate-spin' />
+                  : <Download className='size-4' />
+                }
                 <span className='hidden sm:inline'>Download PDF</span>
               </Button>
             </div>
@@ -388,13 +316,7 @@ const Preview = () => {
         data-hide-on-export
         className='fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-background/95 backdrop-blur-sm border border-border rounded-full px-4 py-2 shadow-lg'
       >
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={handleZoomOut}
-          disabled={zoom <= 50}
-          className='size-8'
-        >
+        <Button variant='ghost' size='icon' onClick={handleZoomOut} disabled={zoom <= 50} className='size-8'>
           <ZoomOut className='size-4' />
         </Button>
         <button
@@ -403,22 +325,11 @@ const Preview = () => {
         >
           {zoom}%
         </button>
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={handleZoomIn}
-          disabled={zoom >= 150}
-          className='size-8'
-        >
+        <Button variant='ghost' size='icon' onClick={handleZoomIn} disabled={zoom >= 150} className='size-8'>
           <ZoomIn className='size-4' />
         </Button>
         <div className='w-px h-6 bg-border mx-1' />
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={handleFullscreen}
-          className='size-8'
-        >
+        <Button variant='ghost' size='icon' onClick={handleFullscreen} className='size-8'>
           <Maximize2 className='size-4' />
         </Button>
       </div>
@@ -429,25 +340,16 @@ const Preview = () => {
           ref={previewRef}
           data-resume-ready
           className='transition-transform duration-200 origin-top'
-          style={{
-            transform: `scale(${zoom / 100})`,
-            width: '100%',
-            maxWidth: '800px',
-          }}
+          style={{ transform: `scale(${zoom / 100})`, width: '100%', maxWidth: '800px' }}
         >
-          <ResumePreview
-            data={resumeData}
-            template={activeTemplate}
-            accentColor={activeColor}
-          />
+          <ResumePreview data={resumeData} template={activeTemplate} accentColor={activeColor} />
         </div>
       </div>
 
       {/* CTA */}
       <div data-hide-on-export className='fixed bottom-6 right-6 z-10'>
         <Button onClick={() => navigate('/signup')} className='shadow-lg gap-2'>
-          Create Your Resume
-          <ArrowLeft className='size-4 rotate-180' />
+          Create Your Resume <ArrowLeft className='size-4 rotate-180' />
         </Button>
       </div>
 
@@ -459,13 +361,7 @@ const Preview = () => {
           </DialogHeader>
           <div className='flex flex-col items-center gap-4 py-6'>
             <div className='bg-white p-6 rounded-xl shadow-sm'>
-              <QRCodeSVG
-                value={shareUrl}
-                size={192}
-                level='H'
-                bgColor='#ffffff'
-                fgColor='#000000'
-              />
+              <QRCodeSVG value={shareUrl} size={192} level='H' bgColor='#ffffff' fgColor='#000000' />
             </div>
             <p className='text-sm text-muted-foreground text-center max-w-xs'>
               Scan this QR code to view the resume on another device
@@ -478,11 +374,7 @@ const Preview = () => {
                 className='flex-1 text-sm bg-muted px-3 py-2 rounded-lg truncate'
               />
               <Button variant='outline' size='sm' onClick={handleCopyLink}>
-                {copied ? (
-                  <Check className='size-4' />
-                ) : (
-                  <Copy className='size-4' />
-                )}
+                {copied ? <Check className='size-4' /> : <Copy className='size-4' />}
               </Button>
             </div>
           </div>
