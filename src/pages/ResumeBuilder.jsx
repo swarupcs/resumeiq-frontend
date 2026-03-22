@@ -21,6 +21,7 @@ import ColorPicker from '@/components/builder/ColorPicker';
 import AutosaveStatusBadge from '@/components/builder/AutosaveStatusBadge';
 import CompletenessScore from '@/components/builder/CompletenessScore';
 import VersionHistory from '@/components/builder/VersionHistory';
+import ATSAnalysis from '@/components/builder/ATSAnalysis';
 import { Button } from '@/components/ui/button';
 import { useResumeById } from '@/hooks/resume/useResumeById';
 import { useUpdateResume } from '@/hooks/resume/useUpdateResume';
@@ -96,7 +97,6 @@ const ResumeBuilder = () => {
       template:     resume.template     ?? DEFAULT_RESUME.template,
       accent_color: resume.accent_color ?? DEFAULT_RESUME.accent_color,
       public:       resume.isPublic     ?? DEFAULT_RESUME.public,
-      // Phase 5 — Feature 5: pass versions through
       versions:     resume.versions     ?? [],
     };
   }, [fetchedResume]);
@@ -222,7 +222,7 @@ const ResumeBuilder = () => {
       <div className='max-w-7xl mx-auto px-4 pb-8'>
         <div className='grid lg:grid-cols-12 gap-8'>
 
-          {/* Left Panel */}
+          {/* ── Left Panel ──────────────────────────────────────────── */}
           <div className='relative lg:col-span-5'>
             <div className='bg-card rounded-xl shadow-sm border border-border p-6 pt-4 relative overflow-hidden'>
               <div className='absolute top-0 left-0 right-0 h-1 bg-muted'>
@@ -232,6 +232,7 @@ const ResumeBuilder = () => {
                 />
               </div>
 
+              {/* Toolbar */}
               <div className='flex justify-between items-center mb-6 border-b border-border pb-3 pt-2'>
                 <div className='flex items-center gap-2'>
                   <TemplateSelector
@@ -272,6 +273,7 @@ const ResumeBuilder = () => {
                 </div>
               </div>
 
+              {/* Section tabs */}
               <div className='flex justify-center gap-2 mb-6'>
                 {sections.map((section, index) => {
                   const Icon = section.icon;
@@ -290,6 +292,7 @@ const ResumeBuilder = () => {
                 })}
               </div>
 
+              {/* Form content */}
               <div className='space-y-6 min-h-[400px]'>
                 {sections[activeSectionIndex].id === 'personal' && (
                   <PersonalInfoForm data={resumeData.personal_info}
@@ -329,17 +332,15 @@ const ResumeBuilder = () => {
             </div>
           </div>
 
-          {/* Right Panel */}
+          {/* ── Right Panel ─────────────────────────────────────────── */}
           <div className='lg:col-span-7 space-y-4'>
+            {/* Action buttons */}
             <div className='flex items-center justify-end gap-2 flex-wrap'>
-              {/* Phase 5 — Feature 4: Cover Letter button */}
               <Button variant='outline' size='sm'
                 onClick={() => navigate(`/app/cover-letter/${resumeId}`)}
-                className='bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800'
-              >
+                className='bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800'>
                 <Mail className='size-4 mr-2' /> Cover Letter
               </Button>
-
               {resumeData.public && (
                 <Button variant='outline' size='sm' onClick={handleShare}
                   className='bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800'>
@@ -362,19 +363,21 @@ const ResumeBuilder = () => {
               </Button>
             </div>
 
+            {/* Resume preview */}
             <ResumePreview
               data={resumeData}
               template={resumeData.template}
               accentColor={resumeData.accent_color}
             />
 
+            {/* Completeness score */}
             <CompletenessScore resumeData={resumeData} />
 
-            {/* Phase 5 — Feature 5: Version history */}
-            <VersionHistory
-              resumeId={resumeId}
-              versions={resumeData.versions ?? []}
-            />
+            {/* ATS analysis — paste a JD, get score + keywords + suggestions */}
+            <ATSAnalysis resumeData={resumeData} />
+
+            {/* Version history */}
+            <VersionHistory resumeId={resumeId} versions={resumeData.versions ?? []} />
           </div>
 
         </div>
