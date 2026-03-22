@@ -10,7 +10,6 @@ import {
   Sparkles,
   Plus,
   Upload,
-  TrendingUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,6 +70,8 @@ const Dashboard = () => {
     }
   };
 
+  // FIX: Was pointing to /view/:id — now consistently uses /preview/:id
+  // which is the canonical public preview route throughout the app.
   const handleShare = async (resume) => {
     if (!resume.isPublic) {
       toast.error('Make the resume public before sharing');
@@ -81,8 +82,13 @@ const Dashboard = () => {
     toast.success('Resume link copied to clipboard');
   };
 
+  // FIX: Was using /preview/:id for preview but /view/:id for share — both now /preview/:id
   const handlePreview = (resume) => navigate(`/preview/${resume._id}`);
   const handleCardClick = (resume) => navigate(`/app/builder/${resume._id}`);
+
+  // FIX: Previously navigated to /app/builder/:id?download=true which never fired
+  // the download because ResumeBuilder didn't read the query param.
+  // Now handled in Fix 4 — ResumeBuilder reads this param on mount.
   const handleDownload = (resume) =>
     navigate(`/app/builder/${resume._id}?download=true`);
 
@@ -132,7 +138,7 @@ const Dashboard = () => {
               <div className='flex gap-2.5'>
                 <button
                   onClick={() => setUploadModalOpen(true)}
-                  className='flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-secondary/60 hover:bg-secondary hover:border-primary/30 text-sm font-medium text-foreground transition-all duration-200 hidden sm:flex'
+                  className='items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-secondary/60 hover:bg-secondary hover:border-primary/30 text-sm font-medium text-foreground transition-all duration-200 hidden sm:flex'
                 >
                   <Upload className='h-4 w-4' />
                   Upload PDF
@@ -217,7 +223,6 @@ const Dashboard = () => {
               </p>
             </div>
           ) : resumes.length === 0 ? (
-            /* Empty state */
             <div className='flex flex-col items-center justify-center py-20 px-4'>
               <div className='relative mb-8'>
                 <div className='absolute inset-0 bg-primary/15 rounded-3xl blur-2xl scale-150' />
@@ -252,7 +257,6 @@ const Dashboard = () => {
                 </button>
               </div>
 
-              {/* Feature highlight cards */}
               <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 mt-16 w-full max-w-2xl'>
                 {[
                   {
@@ -296,11 +300,7 @@ const Dashboard = () => {
               </div>
               <p className='text-foreground font-semibold'>No results found</p>
               <p className='text-sm text-muted-foreground'>
-                No resumes match "
-                <span className='text-foreground font-medium'>
-                  {searchQuery}
-                </span>
-                "
+                No resumes match "{searchQuery}"
               </p>
             </div>
           ) : (

@@ -1,55 +1,51 @@
 import axios from 'axios';
+import store from '@/app/store.js';
+import { logout } from '@/features/authSlice.js';
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
-  withCredentials: true, // allow cookies for auth
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor for adding auth tokens if needed
 axiosInstance.interceptors.request.use(
-  (config) => {
-    // You can add auth token here if stored in localStorage
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
-
-    console.log('🚀 Request:', config.method?.toUpperCase(), config.url);
-    return config;
-  },
-  (error) => {
-    console.error('❌ Request Error:', error);
-    return Promise.reject(error);
-  }
+  (config) => config,
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor for handling common errors
-axiosInstance.interceptors.response.use(
-  (response) => {
-    console.log('✅ Response:', response.status, response.config.url);
-    return response;
-  },
-  (error) => {
-    console.error(
-      '❌ Response Error:',
-      error.response?.status,
-      error.config?.url
-    );
+// FIX: 401 interceptor is now active.
+// Previously it was commented out with `window.location.href = '/login'` which
+// would also bypass Redux entirely. Now we dispatch `logout()` through the store
+// so redux-persist clears stored auth state before the navigation happens.
+// A flag prevents infinite loops if the /auth/logout call itself returns 401.
+let isHandling401 = false;
 
-    // Handle specific error cases
-    if (error.response?.status === 401) {
-      // Unauthorized - could redirect to login
-      console.warn('Unauthorized access - consider redirecting to login');
-      // window.location.href = '/login';
-    } else if (error.response?.status === 403) {
-      // Forbidden
-      console.warn('Access forbidden');
-    } else if (error.response?.status >= 500) {
-      // Server errors
-      console.error('Server error occurred');
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error.response?.status;
+    const url = error.config?.url ?? '';
+
+    // Don't intercept auth endpoints — they handle their own errors
+    const isAuthEndpoint =
+      url.includes('/auth/signin') ||
+      url.includes('/auth/signup') ||
+      url.includes('/auth/logout');
+
+    if (status === 401 && !isAuthEndpoint && !isHandling401) {
+      isHandling401 = true;
+
+      try {
+        // Best-effort cookie clear — don't block on failure
+        await axiosInstance.post('/auth/logout').catch(() => {});
+      } finally {
+        store.dispatch(logout());
+        isHandling401 = false;
+        // Navigate to login without a full page reload so React Router handles it
+        window.location.href = '/login';
+      }
     }
 
     return Promise.reject(error);

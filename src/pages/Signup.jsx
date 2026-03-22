@@ -25,20 +25,16 @@ const Signup = () => {
   const navigate = useNavigate();
   const { mutate: signup, isPending } = useSignup();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    signup(formData, { onSuccess: () => navigate('/dashboard') });
-  };
-
-  const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
+  // FIX: These requirements now match backend validateSignUpData rules exactly.
+  // Previously the UI showed a password strength widget but never blocked submission
+  // on a weak password — the backend would reject it with a 400, but the UX was poor.
   const passwordRequirements = [
     { label: 'At least 8 characters', met: formData.password.length >= 8 },
     { label: 'Contains a number', met: /\d/.test(formData.password) },
     { label: 'Contains uppercase', met: /[A-Z]/.test(formData.password) },
   ];
+
+  const allRequirementsMet = passwordRequirements.every((r) => r.met);
 
   const passwordStrength = passwordRequirements.filter((r) => r.met).length;
   const strengthColors = [
@@ -48,6 +44,21 @@ const Signup = () => {
     'bg-green-500',
   ];
   const strengthLabels = ['', 'Weak', 'Fair', 'Strong'];
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // FIX: Client-side guard — prevents the API call entirely if the password
+    // doesn't meet requirements. Previously the form could be submitted with
+    // any password and the backend would return a 400.
+    if (!allRequirementsMet) return;
+
+    signup(formData, { onSuccess: () => navigate('/dashboard') });
+  };
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   const features = [
     'AI-powered content suggestions',
@@ -233,7 +244,6 @@ const Signup = () => {
                 {/* Password strength */}
                 {formData.password && (
                   <div className='mt-3 space-y-2'>
-                    {/* Strength bar */}
                     <div className='flex gap-1.5'>
                       {[...Array(3)].map((_, i) => (
                         <div
@@ -279,10 +289,13 @@ const Signup = () => {
                 )}
               </div>
 
+              {/* FIX: Button is disabled until all password requirements are met.
+                  Previously it only disabled on isPending — a weak password
+                  would trigger the API call and get a 400 back from the backend. */}
               <button
                 type='submit'
-                disabled={isPending}
-                className='group w-full flex items-center justify-center gap-2.5 px-6 py-3.5 mt-2 rounded-xl font-display font-bold text-base text-white transition-all duration-200 hover:scale-[1.01] disabled:opacity-60 disabled:scale-100'
+                disabled={isPending || !allRequirementsMet}
+                className='group w-full flex items-center justify-center gap-2.5 px-6 py-3.5 mt-2 rounded-xl font-display font-bold text-base text-white transition-all duration-200 hover:scale-[1.01] disabled:opacity-60 disabled:scale-100 disabled:cursor-not-allowed'
                 style={{
                   background:
                     'linear-gradient(135deg, var(--primary), oklch(0.65 0.28 305))',

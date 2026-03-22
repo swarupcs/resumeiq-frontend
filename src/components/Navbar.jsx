@@ -1,6 +1,6 @@
-import { LogOut, Sparkles, User, Sun, Moon, Menu, X, Zap } from 'lucide-react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { LogOut, User, Sun, Moon, Menu, X, Zap, Loader2 } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,12 +11,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { logout, selectCurrentUser } from '@/features/authSlice.js';
+import { selectCurrentUser } from '@/features/authSlice.js';
 import { useTheme } from '@/hooks/useTheme.js';
+import { useLogout } from '@/hooks/auth/useLogout.js';
 
 const Navbar = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  // FIX: Replaced manual dispatch(logout()) + navigate('/') with useLogout hook.
+  // The hook calls the backend to expire the httpOnly cookie before clearing
+  // Redux state, so the session is properly terminated server-side.
+  const { mutate: handleLogout, isPending: isLoggingOut } = useLogout();
+
   const location = useLocation();
   const user = useSelector(selectCurrentUser);
   const { theme, toggleTheme } = useTheme();
@@ -28,11 +32,6 @@ const Navbar = () => {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/');
-  };
 
   const getInitials = () => {
     if (user?.firstName && user?.lastName)
@@ -153,11 +152,16 @@ const Navbar = () => {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={handleLogout}
+                    onClick={() => handleLogout()}
+                    disabled={isLoggingOut}
                     className='text-destructive cursor-pointer gap-2 focus:text-destructive'
                   >
-                    <LogOut className='h-4 w-4' />
-                    Log out
+                    {isLoggingOut ? (
+                      <Loader2 className='h-4 w-4 animate-spin' />
+                    ) : (
+                      <LogOut className='h-4 w-4' />
+                    )}
+                    {isLoggingOut ? 'Logging out...' : 'Log out'}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -179,7 +183,6 @@ const Navbar = () => {
                   <Link to='/signup'>Get Started</Link>
                 </Button>
 
-                {/* Mobile menu button */}
                 {isLanding && (
                   <button
                     onClick={() => setMobileOpen(!mobileOpen)}
