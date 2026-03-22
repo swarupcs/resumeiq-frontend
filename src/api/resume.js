@@ -3,23 +3,26 @@ import { publicAxios } from '@/config/publicAxios.js';
 
 export const getResumeByIdApi = (resumeId) =>
   axiosInstance.get(`/resume/${resumeId}`);
+
 export const getPublicResumeByIdApi = (resumeId) =>
-  publicAxios.get(`/resume/public/${resumeId}`); // ✅ no cookies
+  publicAxios.get(`/resume/public/${resumeId}`);
+
 export const createResumeApi = (data) =>
   axiosInstance.post('/resume/create', data);
+
 export const updateResumeApi = (formData) =>
   axiosInstance.patch('/resume/update', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+
 export const deleteResumeApi = (resumeId) =>
   axiosInstance.delete(`/resume/${resumeId}`);
 
 export const updateResumeTitleApi = (id, title) =>
   axiosInstance.patch(`/resume/${id}/title`, { title });
+
 export const toggleResumeVisibilityApi = (id) =>
   axiosInstance.patch(`/resume/${id}/visibility`);
-
-// Switch from GET to POST so we can send resumeData in the body.
 
 export const exportResumePdfApi = (resumeId, resumeData) =>
   axiosInstance.post(
@@ -32,3 +35,7 @@ export const exportResumePdfPublicApi = (resumeId) =>
   axiosInstance.get(`/resume/${resumeId}/export-pdf/public`, {
     responseType: 'blob',
   });
+
+// Phase 3 — Feature 1: Duplicate resume
+export const duplicateResumeApi = (resumeId) =>
+  axiosInstance.post(`/resume/${resumeId}/duplicate`);

@@ -10,6 +10,7 @@ import {
   MoreVertical,
   Calendar,
   Edit3,
+  Copy,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -28,16 +29,6 @@ const cardGradients = [
   'from-amber-500/10 to-orange-500/10',
 ];
 
-// Props
-// ─────────────────────────────────────────────
-// onEdit(resume)           → opens builder (navigate to /app/builder/:id)
-// onRename(resume)         → opens rename modal
-// onDelete(resume)         → opens delete confirm dialog
-// onClick(resume)          → card body click (same as onEdit)
-// onShare(resume)          → copy public link
-// onDownload(resume)       → trigger PDF download
-// onPreview(resume)        → open public preview page
-// onToggleVisibility(resume) → toggle public/private
 export const ResumeCard = ({
   resume,
   onEdit,
@@ -48,6 +39,7 @@ export const ResumeCard = ({
   onDownload,
   onPreview,
   onToggleVisibility,
+  onDuplicate,   // Phase 3 — Feature 1
 }) => {
   const colorIndex = resume._id
     ? parseInt(resume._id.slice(-4), 16) % cardGradients.length
@@ -88,13 +80,9 @@ export const ResumeCard = ({
             }`}
           >
             {resume.isPublic ? (
-              <>
-                <Globe className='h-3 w-3' /> Public
-              </>
+              <><Globe className='h-3 w-3' /> Public</>
             ) : (
-              <>
-                <Lock className='h-3 w-3' /> Private
-              </>
+              <><Lock className='h-3 w-3' /> Private</>
             )}
           </Badge>
 
@@ -112,59 +100,42 @@ export const ResumeCard = ({
               onClick={(e) => e.stopPropagation()}
               className='w-52'
             >
-              {/* Primary action — opens the builder to edit content */}
-              <DropdownMenuItem
-                onClick={() => onEdit(resume)}
-                className='gap-2 font-medium'
-              >
+              {/* Primary action — opens the builder */}
+              <DropdownMenuItem onClick={() => onEdit(resume)} className='gap-2 font-medium'>
                 <Edit3 className='h-4 w-4' /> Edit Resume
               </DropdownMenuItem>
 
-              <DropdownMenuItem
-                onClick={() => onPreview(resume)}
-                className='gap-2'
-              >
+              <DropdownMenuItem onClick={() => onPreview(resume)} className='gap-2'>
                 <Eye className='h-4 w-4' /> Preview
               </DropdownMenuItem>
 
-              {/* Rename is a separate action — only changes the title */}
-              <DropdownMenuItem
-                onClick={() => onRename(resume)}
-                className='gap-2'
-              >
+              {/* Rename — title only */}
+              <DropdownMenuItem onClick={() => onRename(resume)} className='gap-2'>
                 <Pencil className='h-4 w-4' /> Rename
+              </DropdownMenuItem>
+
+              {/* Phase 3 — Feature 1: Duplicate */}
+              <DropdownMenuItem onClick={() => onDuplicate(resume)} className='gap-2'>
+                <Copy className='h-4 w-4' /> Duplicate
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem
-                onClick={() => onDownload(resume)}
-                className='gap-2'
-              >
+              <DropdownMenuItem onClick={() => onDownload(resume)} className='gap-2'>
                 <Download className='h-4 w-4' /> Download PDF
               </DropdownMenuItem>
 
               {resume.isPublic && (
-                <DropdownMenuItem
-                  onClick={() => onShare(resume)}
-                  className='gap-2'
-                >
+                <DropdownMenuItem onClick={() => onShare(resume)} className='gap-2'>
                   <Share2 className='h-4 w-4' /> Share Link
                 </DropdownMenuItem>
               )}
 
-              <DropdownMenuItem
-                onClick={() => onToggleVisibility(resume)}
-                className='gap-2'
-              >
+              <DropdownMenuItem onClick={() => onToggleVisibility(resume)} className='gap-2'>
                 {resume.isPublic ? (
-                  <>
-                    <Lock className='h-4 w-4' /> Make Private
-                  </>
+                  <><Lock className='h-4 w-4' /> Make Private</>
                 ) : (
-                  <>
-                    <Globe className='h-4 w-4' /> Make Public
-                  </>
+                  <><Globe className='h-4 w-4' /> Make Public</>
                 )}
               </DropdownMenuItem>
 
@@ -203,29 +174,19 @@ export const ResumeCard = ({
 
         <div className='flex items-center gap-1.5 text-xs text-muted-foreground mb-4'>
           <Calendar className='h-3 w-3' />
-          <span>
-            Updated {format(new Date(resume.updatedAt), 'MMM d, yyyy')}
-          </span>
+          <span>Updated {format(new Date(resume.updatedAt), 'MMM d, yyyy')}</span>
         </div>
 
-        {/* Hover action buttons — Edit and Preview as primary quick actions */}
+        {/* Hover action buttons */}
         <div className='flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0'>
-          {/* Edit button opens the builder */}
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(resume);
-            }}
+            onClick={(e) => { e.stopPropagation(); onEdit(resume); }}
             className='flex-1 py-2 px-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium transition-colors flex items-center justify-center gap-1.5 border border-primary/20 hover:border-primary/40'
           >
             <Edit3 className='h-3.5 w-3.5' /> Edit
           </button>
-
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onPreview(resume);
-            }}
+            onClick={(e) => { e.stopPropagation(); onPreview(resume); }}
             className='flex-1 py-2 px-3 rounded-xl bg-secondary hover:bg-primary/10 hover:text-primary text-xs font-medium text-foreground transition-colors flex items-center justify-center gap-1.5 border border-border hover:border-primary/30'
           >
             <Eye className='h-3.5 w-3.5' /> Preview

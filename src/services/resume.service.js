@@ -8,6 +8,7 @@ import {
   toggleResumeVisibilityApi,
   exportResumePdfApi,
   exportResumePdfPublicApi,
+  duplicateResumeApi,
 } from '@/api/resume.js';
 import handleApiError from '@/lib/handleApiError.js';
 
@@ -46,7 +47,6 @@ export const resumeService = {
       formData.append('resumeData', JSON.stringify(resumeData));
       if (image) formData.append('image', image);
       if (removeBackground) formData.append('removeBackground', 'true');
-
       const { data } = await updateResumeApi(formData);
       return data;
     } catch (error) {
@@ -80,8 +80,6 @@ export const resumeService = {
       throw handleApiError(error, 'Failed to toggle visibility');
     }
   },
-  // Now sends current resumeData in the body so the backend renders from
-  // the latest frontend state, not stale DB data.
 
   exportResumePdf: async (resumeId, fullName, resumeData) => {
     try {
@@ -97,7 +95,6 @@ export const resumeService = {
     }
   },
 
-  // Public download — only works for public resumes (used on shared preview page)
   exportResumePdfPublic: async (resumeId, fullName) => {
     try {
       const { data } = await exportResumePdfPublicApi(resumeId);
@@ -109,6 +106,16 @@ export const resumeService = {
       URL.revokeObjectURL(url);
     } catch (error) {
       throw handleApiError(error, 'Failed to export PDF');
+    }
+  },
+
+  // Phase 3 — Feature 1: Duplicate resume
+  duplicateResume: async (resumeId) => {
+    try {
+      const { data } = await duplicateResumeApi(resumeId);
+      return data;
+    } catch (error) {
+      throw handleApiError(error, 'Failed to duplicate resume');
     }
   },
 };
