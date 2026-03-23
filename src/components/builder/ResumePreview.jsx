@@ -1,4 +1,8 @@
+// ResumePreview.jsx
+// Routes the template ID to the correct component.
+// Also used by Puppeteer's /render route via window.__RESUME_DATA__.
 
+// Existing 7
 import ClassicTemplate from './templates/ClassicTemplate';
 import ModernTemplate from './templates/ModernTemplate';
 import MinimalTemplate from './templates/MinimalTemplate';
@@ -7,70 +11,67 @@ import ExecutiveTemplate from './templates/ExecutiveTemplate';
 import CreativeTemplate from './templates/CreativeTemplate';
 import ProfessionalTemplate from './templates/ProfessionalTemplate';
 
+// 20 new
+import CompactTemplate from './templates/CompactTemplate';
+import ElegantTemplate from './templates/ElegantTemplate';
+import BoldTemplate from './templates/BoldTemplate';
+import TimelineTemplate from './templates/TimelineTemplate';
+import SidebarDarkTemplate from './templates/SidebarDarkTemplate';
+import {
+  TwoColumnTemplate, CardTemplate, MonochromeTemplate,
+  TechTemplate, InfographicTemplate,
+} from './templates/Templates6to10';
+import {
+  NewspaperTemplate, GradientTemplate, AcademicTemplate,
+  StartupTemplate, CompactSidebarTemplate,
+} from './templates/Templates11to15';
+import {
+  BoxedHeaderTemplate, UnderlineTemplate, SplitColorTemplate,
+  MinimalistTemplate, PortfolioTemplate,
+} from './templates/Templates16to20';
 
+const TEMPLATE_MAP = {
+  // Original 7
+  classic:        ClassicTemplate,
+  modern:         ModernTemplate,
+  minimal:        MinimalTemplate,
+  'minimal-image': MinimalImageTemplate,
+  executive:      ExecutiveTemplate,
+  creative:       CreativeTemplate,
+  professional:   ProfessionalTemplate,
 
-const ResumePreview = ({ data, template, accentColor }) => {
-  const renderTemplate = () => {
-    switch (template) {
-      case "modern":
-        return <ModernTemplate data={data} accentColor={accentColor} />;
-      case "minimal":
-        return <MinimalTemplate data={data} accentColor={accentColor} />;
-      case "minimal-image":
-        return <MinimalImageTemplate data={data} accentColor={accentColor} />;
-      case "executive":
-        return <ExecutiveTemplate data={data} accentColor={accentColor} />;
-      case "creative":
-        return <CreativeTemplate data={data} accentColor={accentColor} />;
-      case "professional":
-        return <ProfessionalTemplate data={data} accentColor={accentColor} />;
-      default:
-        return <ClassicTemplate data={data} accentColor={accentColor} />;
-    }
-  };
+  // New 20
+  compact:         CompactTemplate,
+  elegant:         ElegantTemplate,
+  bold:            BoldTemplate,
+  timeline:        TimelineTemplate,
+  'sidebar-dark':  SidebarDarkTemplate,
+  'two-column':    TwoColumnTemplate,
+  card:            CardTemplate,
+  monochrome:      MonochromeTemplate,
+  tech:            TechTemplate,
+  infographic:     InfographicTemplate,
+  newspaper:       NewspaperTemplate,
+  gradient:        GradientTemplate,
+  academic:        AcademicTemplate,
+  startup:         StartupTemplate,
+  'compact-sidebar': CompactSidebarTemplate,
+  'boxed-header':  BoxedHeaderTemplate,
+  underline:       UnderlineTemplate,
+  'split-color':   SplitColorTemplate,
+  minimalist:      MinimalistTemplate,
+  portfolio:       PortfolioTemplate,
+};
+
+const ResumePreview = ({ data, template = 'classic', accentColor = '#3B82F6' }) => {
+  const TemplateComponent = TEMPLATE_MAP[template] ?? ClassicTemplate;
 
   return (
-    <div className="relative">
-      <div 
-        id="resume-preview" 
-        className="bg-white rounded-lg shadow-xl overflow-hidden"
-        style={{ aspectRatio: '8.5/11' }}
-      >
-        <div className="w-full h-full overflow-auto">
-          {renderTemplate()}
-        </div>
-      </div>
-
-      <style>{`
-        @page {
-          size: letter;
-          margin: 0;
-        }
-        @media print {
-          html, body {
-            width: 8.5in;
-            height: 11in;
-            overflow: hidden; 
-          }
-          body * {
-            visibility: hidden;
-          }
-          #resume-preview, #resume-preview * {
-            visibility: visible;
-          }
-          #resume-preview {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: auto;
-            margin: 0;
-            padding: 0;
-            box-shadow: none !important;
-            border: none !important;
-          }
-        }
-      `}</style>
+    <div
+      className='bg-white shadow-lg rounded-lg overflow-hidden'
+      style={{ width: '100%', minHeight: '297mm' }}
+    >
+      <TemplateComponent data={data} accentColor={accentColor} />
     </div>
   );
 };
