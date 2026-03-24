@@ -180,7 +180,6 @@ const ResumeBuilder = () => {
     removeBackgroundRef.current = removeBackground;
   }, [removeBackground]);
 
-  // ── performSave must be defined BEFORE useAutosave ──────────────────
   const performSave = async (dataToSave) => {
     const hasNewImage = dataToSave.personal_info?.image instanceof File;
     const resumeDataToSend = {
@@ -203,6 +202,7 @@ const ResumeBuilder = () => {
       versions: result.data.resume.versions ?? prev.versions,
     }));
     clearHistory();
+    setLocalOverrides({}); // ✅ reset so autosave stops firing
   };
 
   const hasLocalImageFile = resumeData.personal_info?.image instanceof File;
@@ -222,6 +222,7 @@ const ResumeBuilder = () => {
     await triggerSave(resumeData);
     resetBaseline(resumeData);
     clearHistory();
+    setLocalOverrides({}); // ✅ same reset here
   };
 
   const { mutate: exportPdf, isPending: isExporting } = useExportResumePdf();
