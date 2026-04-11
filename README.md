@@ -1,68 +1,73 @@
+# React + TypeScript + Vite
 
-## 📁 Frontend Architecture: `api / services / hooks`
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-This project follows a **layered frontend architecture** to ensure scalability, maintainability, and clean separation of concerns.
+Currently, two official plugins are available:
 
-### 🔹 `api/`
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-Handles **pure HTTP communication** with the backend (Axios / Fetch).
-Contains only request definitions with no business logic, UI logic, or React-specific code.
+## React Compiler
 
-**Responsibility:**
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-* Call backend endpoints
-* Return raw responses
+## Expanding the ESLint configuration
 
----
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-### 🔹 `services/`
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-Contains **business logic and side effects**.
-This layer orchestrates API calls, handles error normalization, token management, and user feedback (e.g., toasts).
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-**Responsibility:**
-
-* Combine multiple API calls if needed
-* Handle side effects (auth tokens, notifications)
-* Transform or normalize response data
-
----
-
-### 🔹 `hooks/`
-
-Encapsulates **React-specific data fetching logic** using TanStack Query.
-Manages caching, loading/error states, retries, and query invalidation.
-
-**Responsibility:**
-
-* Integrate services with React
-* Manage server state lifecycle
-* Expose clean APIs to UI components
-
----
-
-### 🔹 UI Components
-
-Focused solely on **rendering and user interaction**.
-They consume hooks and remain free from API calls and business logic.
-
----
-
-### ✅ Benefits of This Structure
-
-* Clear separation of concerns
-* Improved readability and testability
-* Easier refactoring and scaling
-* Matches real-world, production-grade React applications
-
----
-
-### 🔁 Data Flow
-
-```
-UI → Hooks → Services → API → Backend
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
