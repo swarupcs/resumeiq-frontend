@@ -10,7 +10,6 @@ import {
   Loader2,
   FileX,
   Download,
-  Share2,
   Sparkles,
   Copy,
   Check,
@@ -224,7 +223,7 @@ export const Render = () => {
     };
   }, []);
   const resumeData =
-    ((window as Record<string, unknown>).__RESUME_DATA__ as
+    (((window as unknown) as Record<string, unknown>).__RESUME_DATA__ as
       | Parameters<typeof ResumePreview>[0]['data']
       | null) ?? null;
   if (!resumeData)

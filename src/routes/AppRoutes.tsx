@@ -29,19 +29,29 @@ const Signup = lazy(() =>
 );
 
 const ForgotPassword = lazy(() =>
-  import('@/pages/auth-flow/ForgotPassword').then((m) => ({ default: m.ForgotPassword })),
+  import('@/pages/auth-flow/ForgotPassword').then((m) => ({
+    default: m.ForgotPassword,
+  })),
 );
 const ResetPassword = lazy(() =>
-  import('@/pages/auth-flow/ResetPassword').then((m) => ({ default: m.ResetPassword })),
+  import('@/pages/auth-flow/ResetPassword').then((m) => ({
+    default: m.ResetPassword,
+  })),
 );
 const VerifyEmail = lazy(() =>
-  import('@/pages/auth-flow/VerifyEmail').then((m) => ({ default: m.VerifyEmail })),
+  import('@/pages/auth-flow/VerifyEmail').then((m) => ({
+    default: m.VerifyEmail,
+  })),
 );
 const EmailVerified = lazy(() =>
-  import('@/pages/auth-flow/EmailVerified').then((m) => ({ default: m.EmailVerified })),
+  import('@/pages/auth-flow/EmailVerified').then((m) => ({
+    default: m.EmailVerified,
+  })),
 );
 const OAuthCallback = lazy(() =>
-  import('@/pages/auth-flow/OAuthCallback').then((m) => ({ default: m.OAuthCallback })),
+  import('@/pages/auth-flow/OAuthCallback').then((m) => ({
+    default: m.OAuthCallback,
+  })),
 );
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'));

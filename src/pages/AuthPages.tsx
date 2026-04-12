@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import GoogleAuthButton from '@/components/GoogleAuthButton';
 import { useSignin } from '@/hooks/auth/useSignin';

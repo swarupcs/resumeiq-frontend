@@ -31,7 +31,6 @@ import {
   useDuplicateResume,
   useToggleResumeVisibility,
 } from '@/hooks/resume/index';
-import { resumeService } from '@/services/resume.service';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ResumeListItem } from '@/types';
 
