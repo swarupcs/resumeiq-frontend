@@ -27,7 +27,7 @@ export const ResumeCard = ({ resume, onEdit, onRename, onDelete, onClick, onShar
           {resume.isPublic ? <><Globe className="h-3 w-3" />Public</> : <><Lock className="h-3 w-3" />Private</>}
         </Badge>
         <DropdownMenu>
-          <DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild>
             <button onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary opacity-0 group-hover:opacity-100 transition-all duration-200"><MoreVertical className="h-4 w-4" /></button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52" onClick={(e: React.MouseEvent) => e.stopPropagation()}>

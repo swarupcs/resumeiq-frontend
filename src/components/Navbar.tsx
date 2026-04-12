@@ -65,7 +65,7 @@ const Navbar = () => {
 
           {user ? (
             <DropdownMenu>
-              <DropdownMenuTrigger>
+              <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl border border-border hover:border-primary/40 bg-secondary/40 hover:bg-secondary transition-all duration-200">
                   <Avatar className="h-7 w-7">
                     <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600 text-white text-xs font-bold">{getInitials()}</AvatarFallback>
