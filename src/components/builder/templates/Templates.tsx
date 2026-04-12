@@ -1,4 +1,5 @@
-import { Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Globe } from 'lucide-react';
+import { LinkedinIcon } from '@/components/ui/brand-icons';
 import type { ResumeData } from '@/types';
 
 interface TemplateProps { data: ResumeData; accentColor: string; }
@@ -28,7 +29,7 @@ export const ClassicTemplate = ({ data, accentColor }: TemplateProps) => {
           {pi?.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{pi.email}</span>}
           {pi?.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{pi.phone}</span>}
           {pi?.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{pi.location}</span>}
-          {pi?.linkedin && <span className="flex items-center gap-1"><Linkedin className="w-3 h-3" />LinkedIn</span>}
+          {pi?.linkedin && <span className="flex items-center gap-1"><LinkedinIcon className="w-3 h-3" />LinkedIn</span>}
           {pi?.website && <span className="flex items-center gap-1"><Globe className="w-3 h-3" />Portfolio</span>}
         </div>
       </div>

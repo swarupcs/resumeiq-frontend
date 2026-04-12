@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, FileText, Search, Plus, Upload, Linkedin, Grid3X3, List, Filter } from 'lucide-react';
+import { Loader2, FileText, Search, Plus, Upload, Grid3X3, List, Filter } from 'lucide-react';
+import { LinkedinIcon } from '@/components/ui/brand-icons';
 import { Input } from '@/components/ui/input';
 import { Select, SelectItem } from '@/components/ui/primitives';
 import { ResumeCard } from '@/components/dashboard/ResumeCard';
@@ -77,7 +78,7 @@ const Dashboard = () => {
                 {!isLoading && resumes.length > 0 && <p className="text-sm text-muted-foreground mt-1">{resumes.length} resume{resumes.length !== 1 ? 's' : ''} · {resumes.filter((r) => r.isPublic).length} public</p>}
               </div>
               <div className="flex gap-2.5 flex-wrap">
-                <button onClick={() => setLinkedInModalOpen(true)} className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-sm font-medium text-foreground transition-all"><Linkedin className="h-4 w-4 text-[#0077B5]" />Import LinkedIn</button>
+                <button onClick={() => setLinkedInModalOpen(true)} className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-sm font-medium text-foreground transition-all"><LinkedinIcon className="h-4 w-4 text-[#0077B5]" />Import LinkedIn</button>
                 <button onClick={() => setUploadModalOpen(true)} className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-sm font-medium text-foreground transition-all"><Upload className="h-4 w-4" />Upload PDF</button>
                 <button onClick={() => setCreateModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold text-sm transition-all hover:scale-[1.02]" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(271 76% 53%))', boxShadow: '0 4px 16px hsl(var(--primary) / 0.3)' }}>
                   <Plus className="h-4 w-4" />New Resume
@@ -127,7 +128,7 @@ const Dashboard = () => {
               <h2 className="font-display text-2xl font-black text-foreground mb-2">No resumes yet</h2>
               <p className="text-muted-foreground text-center max-w-sm mb-8 text-sm leading-relaxed">Create your first AI-powered resume, upload an existing PDF, or import from LinkedIn.</p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <button onClick={() => setLinkedInModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[#0077B5]/30 bg-[#0077B5]/5 hover:bg-[#0077B5]/10 text-sm font-medium text-foreground"><Linkedin className="h-4 w-4 text-[#0077B5]" />Import LinkedIn</button>
+                <button onClick={() => setLinkedInModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[#0077B5]/30 bg-[#0077B5]/5 hover:bg-[#0077B5]/10 text-sm font-medium text-foreground"><LinkedinIcon className="h-4 w-4 text-[#0077B5]" />Import LinkedIn</button>
                 <button onClick={() => setUploadModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-sm font-medium text-foreground"><Upload className="h-4 w-4" />Upload PDF</button>
                 <button onClick={() => setCreateModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(271 76% 53%))' }}><Plus className="h-4 w-4" />New Resume</button>
               </div>

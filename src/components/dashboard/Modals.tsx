@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Upload, FileText, X, Linkedin, Info, TrendingUp, Eye, Download, Calendar } from 'lucide-react';
+import { Loader2, Upload, FileText, X, Info, TrendingUp, Eye, Download, Calendar } from 'lucide-react';
+import { LinkedinIcon } from '@/components/ui/brand-icons';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -157,7 +158,7 @@ export const LinkedInImportModal = ({ open, onClose }: { open: boolean; onClose:
   return (
     <Dialog open={open} onOpenChange={reset}>
       <DialogContent className="sm:max-w-lg">
-        <DialogHeader><DialogTitle className="flex items-center gap-2"><Linkedin className="h-5 w-5 text-[#0077B5]" />Import from LinkedIn</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="flex items-center gap-2"><LinkedinIcon className="h-5 w-5 text-[#0077B5]" />Import from LinkedIn</DialogTitle></DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); if (!isReady) return; importLinkedIn({ title: title.trim(), linkedInText }, { onSuccess: reset }); }}>
           <div className="space-y-4 py-4">
             <div className="flex gap-2.5 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20">

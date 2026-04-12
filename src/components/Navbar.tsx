@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { LogOut, User, Sun, Moon, Menu, X, Zap, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/primitives';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { selectCurrentUser } from '@/features/authSlice';
 import { useTheme } from '@/context/ThemeContext';
 import { useLogout } from '@/hooks/auth/useLogout';

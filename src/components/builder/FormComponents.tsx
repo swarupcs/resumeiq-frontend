@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Briefcase, GraduationCap, FolderIcon, Sparkles, X, Loader2 } from 'lucide-react';
-import { BriefcaseBusiness, Globe, Linkedin, Mail, MapPin, Phone, User } from 'lucide-react';
+import { BriefcaseBusiness, Globe, Mail, MapPin, Phone, User } from 'lucide-react';
+import { LinkedinIcon } from '@/components/ui/brand-icons';
 import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/primitives';
 import { Switch } from '@/components/ui/primitives';
@@ -29,7 +30,7 @@ export const PersonalInfoForm = ({ data, onChange, removeBackground, setRemoveBa
     { key: 'phone', label: 'Phone Number', icon: Phone, type: 'tel' },
     { key: 'location', label: 'Location', icon: MapPin, type: 'text' },
     { key: 'profession', label: 'Profession', icon: BriefcaseBusiness, type: 'text' },
-    { key: 'linkedin', label: 'LinkedIn Profile', icon: Linkedin, type: 'url' },
+    { key: 'linkedin', label: 'LinkedIn Profile', icon: LinkedinIcon, type: 'url' },
     { key: 'website', label: 'Personal Website', icon: Globe, type: 'url' },
   ];
   return (
