@@ -3,7 +3,6 @@ import {
   ArrowRight,
   Zap,
   Sparkles,
-  Star,
   Brain,
   Target,
   Palette,
