@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle2, Circle, ChevronDown, ChevronUp, Target, Loader2, RefreshCw, History, RotateCcw, XCircle, Lightbulb, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useResumeCompleteness } from '@/hooks/resume/useResumeCompleteness';
 import { useRestoreVersion } from '@/hooks/resume/index';
 import { useATSAnalysis } from '@/hooks/ai';
@@ -209,20 +209,23 @@ export const VersionHistory = ({ resumeId, versions = [] }: { resumeId: string; 
           </div>
         )}
       </div>
-      <AlertDialog open={confirmIndex !== null} onOpenChange={(open) => { if (!open) setConfirmIndex(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Restore this version?</AlertDialogTitle>
-            <AlertDialogDescription>Your current resume content will be saved as a new version before restoring. The builder will reload with the restored content.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isPending} onClick={() => setConfirmIndex(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => confirmIndex !== null && restoreVersion(confirmIndex, { onSuccess: () => setConfirmIndex(null) })} disabled={isPending}>
+      <Dialog open={confirmIndex !== null} onOpenChange={(open) => { if (!open) setConfirmIndex(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Restore this version?</DialogTitle>
+            <DialogDescription>Your current resume content will be saved as a new version before restoring. The builder will reload with the restored content.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" disabled={isPending} onClick={() => setConfirmIndex(null)}>Cancel</Button>
+            <Button
+              disabled={isPending}
+              onClick={() => confirmIndex !== null && restoreVersion(confirmIndex, { onSuccess: () => setConfirmIndex(null) })}
+            >
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Restore Version
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
