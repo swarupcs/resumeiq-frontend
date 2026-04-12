@@ -6,19 +6,19 @@ import { selectCurrentUser, selectIsAuthenticated } from '@/features/authSlice';
 
 // ── Lazy pages ────────────────────────────────────────────────────────────────
 const LandingPage = lazy(() =>
-  import('@/pages/OtherPages').then((m) => ({ default: m.LandingPage })),
+  import('@/pages/LandingPage').then((m) => ({ default: m.LandingPage })),
 );
 const NotFoundPage = lazy(() =>
-  import('@/pages/OtherPages').then((m) => ({ default: m.NotFoundPage })),
+  import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })),
 );
 const Preview = lazy(() =>
-  import('@/pages/OtherPages').then((m) => ({ default: m.Preview })),
+  import('@/pages/Preview').then((m) => ({ default: m.Preview })),
 );
 const Render = lazy(() =>
-  import('@/pages/OtherPages').then((m) => ({ default: m.Render })),
+  import('@/pages/Render').then((m) => ({ default: m.Render })),
 );
 const CoverLetter = lazy(() =>
-  import('@/pages/OtherPages').then((m) => ({ default: m.CoverLetter })),
+  import('@/pages/CoverLetter').then((m) => ({ default: m.CoverLetter })),
 );
 
 const Login = lazy(() =>
