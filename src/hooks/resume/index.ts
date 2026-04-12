@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { resumeService } from '@/services/resume.service';
-import type { UpdateResumePayload } from '@/types';
+import type { UpdateResumePayload, ResumeData } from '@/types';
 
 // ── useResumeById ─────────────────────────────────────────────────────────────
 export const useResumeById = (resumeId: string) =>
