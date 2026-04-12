@@ -1,11 +1,20 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
+import type { Storage } from 'redux-persist';
 import authReducer from '../features/authSlice';
+
+// Explicitly define a localStorage storage engine to avoid the ESM/CJS
+// interop bug with redux-persist v6 and Vite, where the default import
+// from 'redux-persist/lib/storage' resolves to an empty object.
+const localStorageEngine: Storage = {
+  getItem: (key: string) => Promise.resolve(localStorage.getItem(key)),
+  setItem: (key: string, value: string) => Promise.resolve(localStorage.setItem(key, value)),
+  removeItem: (key: string) => Promise.resolve(localStorage.removeItem(key)),
+};
 
 const persistConfig = {
   key: 'root',
-  storage,
+  storage: localStorageEngine,
   whitelist: ['auth'],
 };
 
