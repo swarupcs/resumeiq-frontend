@@ -31,7 +31,6 @@ const Navbar = () => {
   const navLinks = [
     { href: '#features', label: 'Features' },
     { href: '#how-it-works', label: 'How it Works' },
-    { href: '#testimonials', label: 'Testimonials' },
   ];
   const isLanding = location.pathname === '/';
 
