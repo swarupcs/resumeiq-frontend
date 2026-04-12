@@ -22,10 +22,10 @@ const CoverLetter = lazy(() =>
 );
 
 const Login = lazy(() =>
-  import('@/pages/AuthPages').then((m) => ({ default: m.Login })),
+  import('@/pages/auth/Login').then((m) => ({ default: m.Login })),
 );
 const Signup = lazy(() =>
-  import('@/pages/AuthPages').then((m) => ({ default: m.Signup })),
+  import('@/pages/auth/Signup').then((m) => ({ default: m.Signup })),
 );
 
 const ForgotPassword = lazy(() =>
