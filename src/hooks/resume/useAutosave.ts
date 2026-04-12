@@ -40,7 +40,10 @@ export const useAutosave = ({
     if (serialized === baselineRef.current) return;
 
     if (timerRef.current) clearTimeout(timerRef.current);
-    setAutosaveStatus('pending');
+    
+    // We update this via a micro-task/timeout to prevent React from throwing 
+    // "Calling setState synchronously within an effect can trigger cascading renders"
+    const pendingTimer = setTimeout(() => setAutosaveStatus('pending'), 0);
 
     timerRef.current = setTimeout(async () => {
       setAutosaveStatus('saving');
@@ -56,9 +59,10 @@ export const useAutosave = ({
     }, delay);
 
     return () => {
+      clearTimeout(pendingTimer);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [serialized, delay, enabled]);
+  }, [serialized, delay, enabled, data]);
 
   const triggerSave = useCallback(async (currentData: ResumeData) => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -90,64 +94,84 @@ export const useUndoRedo = <T>(
   options: { maxHistory?: number } = {},
 ) => {
   const maxHistory = options.maxHistory ?? MAX_HISTORY;
-  const [state, setStateRaw] = useState<T>(initialState);
-  const undoStack = useRef<T[]>([]);
-  const redoStack = useRef<T[]>([]);
+  
+  const [history, setHistory] = useState<{
+    past: T[];
+    present: T;
+    future: T[];
+  }>({
+    past: [],
+    present: initialState,
+    future: [],
+  });
 
   const setState = useCallback(
     (updater: T | ((prev: T) => T)) => {
-      setStateRaw((current) => {
+      setHistory((currentHistory) => {
         const next =
           typeof updater === 'function'
-            ? (updater as (prev: T) => T)(current)
+            ? (updater as (prev: T) => T)(currentHistory.present)
             : updater;
-        if (JSON.stringify(next) === JSON.stringify(current)) return current;
-        undoStack.current = [
-          ...undoStack.current.slice(-maxHistory + 1),
-          current,
-        ];
-        redoStack.current = [];
-        return next;
+            
+        if (JSON.stringify(next) === JSON.stringify(currentHistory.present)) {
+          return currentHistory;
+        }
+
+        return {
+          past: [...currentHistory.past.slice(-maxHistory + 1), currentHistory.present],
+          present: next,
+          future: [],
+        };
       });
     },
-    [maxHistory],
+    [maxHistory]
   );
 
   const undo = useCallback(() => {
-    if (!undoStack.current.length) return;
-    setStateRaw((current) => {
-      const previous = undoStack.current[undoStack.current.length - 1]!;
-      undoStack.current = undoStack.current.slice(0, -1);
-      redoStack.current = [current, ...redoStack.current].slice(0, maxHistory);
-      return previous;
+    setHistory((currentHistory) => {
+      if (currentHistory.past.length === 0) return currentHistory;
+      
+      const previous = currentHistory.past[currentHistory.past.length - 1]!;
+      const newPast = currentHistory.past.slice(0, -1);
+      
+      return {
+        past: newPast,
+        present: previous,
+        future: [currentHistory.present, ...currentHistory.future].slice(0, maxHistory),
+      };
     });
   }, [maxHistory]);
 
   const redo = useCallback(() => {
-    if (!redoStack.current.length) return;
-    setStateRaw((current) => {
-      const next = redoStack.current[0]!;
-      redoStack.current = redoStack.current.slice(1);
-      undoStack.current = [
-        ...undoStack.current.slice(-maxHistory + 1),
-        current,
-      ];
-      return next;
+    setHistory((currentHistory) => {
+      if (currentHistory.future.length === 0) return currentHistory;
+      
+      const next = currentHistory.future[0]!;
+      const newFuture = currentHistory.future.slice(1);
+      
+      return {
+        past: [...currentHistory.past.slice(-maxHistory + 1), currentHistory.present],
+        present: next,
+        future: newFuture,
+      };
     });
   }, [maxHistory]);
 
   const clearHistory = useCallback(() => {
-    undoStack.current = [];
-    redoStack.current = [];
+    setHistory((current) => ({
+      ...current,
+      past: [],
+      future: [],
+    }));
   }, []);
 
   return {
-    state,
+    state: history.present,
     setState,
     undo,
     redo,
     clearHistory,
-    canUndo: undoStack.current.length > 0,
-    canRedo: redoStack.current.length > 0,
+    canUndo: history.past.length > 0,
+    canRedo: history.future.length > 0,
   };
 };
