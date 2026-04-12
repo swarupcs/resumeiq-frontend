@@ -1,6 +1,7 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import store from '@/app/store';
 import { logout, setCredentials } from '@/features/authSlice';
+import type { User } from '@/types';
 
 interface RetryableRequest extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -61,11 +62,7 @@ axiosInstance.interceptors.response.use(
             statusCode: 200,
             message: 'Tokens refreshed',
             data: {
-              user: (
-                data as {
-                  data: { user: Parameters<typeof setCredentials>[0]['data'] };
-                }
-              ).data.user,
+              user: (data as { data: { user: User } }).data.user,
             },
           }),
         );
