@@ -1,6 +1,6 @@
 import { Pencil, Trash2, FileText, Share2, Download, Eye, Globe, Lock, MoreVertical, Calendar, Edit3, Copy, BarChart2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/primitives';
 import type { ResumeListItem } from '@/types';
 
