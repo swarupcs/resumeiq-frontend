@@ -2,8 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, Upload, FileText, X, Info, TrendingUp, Eye, Download, Calendar } from 'lucide-react';
 import { LinkedinIcon } from '@/components/ui/brand-icons';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -48,17 +47,26 @@ export const DeleteConfirmDialog = ({ open, resume, onClose }: { open: boolean; 
   const { mutate: deleteResume, isPending } = useDeleteResume();
   if (!resume) return null;
   return (
-    <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent>
-        <AlertDialogHeader><AlertDialogTitle>Delete Resume</AlertDialogTitle><AlertDialogDescription>Are you sure you want to delete "{resume.title}"? This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending} onClick={onClose}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => deleteResume(resume._id, { onSuccess: () => onClose() })} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Delete Resume</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete &quot;{resume.title}&quot;? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" disabled={isPending} onClick={onClose}>Cancel</Button>
+          <Button
+            variant="destructive"
+            disabled={isPending}
+            onClick={() => deleteResume(resume._id, { onSuccess: () => onClose() })}
+          >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Delete
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
