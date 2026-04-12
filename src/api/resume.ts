@@ -29,11 +29,13 @@ export const exportResumePdfApi = (resumeId: string, resumeData: ResumeData) =>
   axiosInstance.post(
     `/resume/${resumeId}/export-pdf`,
     { resumeData: JSON.stringify(resumeData) },
-    { responseType: 'blob' }
+    { responseType: 'blob' },
   );
 
 export const exportResumePdfPublicApi = (resumeId: string) =>
-  axiosInstance.get(`/resume/${resumeId}/export-pdf/public`, { responseType: 'blob' });
+  axiosInstance.get(`/resume/${resumeId}/export-pdf/public`, {
+    responseType: 'blob',
+  });
 
 export const duplicateResumeApi = (resumeId: string) =>
   axiosInstance.post(`/resume/${resumeId}/duplicate`);

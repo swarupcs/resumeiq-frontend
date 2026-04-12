@@ -8,6 +8,8 @@ export const useSignup = () => {
   const dispatch = useDispatch();
   return useMutation({
     mutationFn: (userData: SignupPayload) => authService.signup(userData),
-    onSuccess: (data) => { dispatch(setCredentials(data)); },
+    onSuccess: (data) => {
+      dispatch(setCredentials(data));
+    },
   });
 };

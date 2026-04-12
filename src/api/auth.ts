@@ -7,8 +7,7 @@ export const signupApi = (userData: SignupPayload) =>
 export const signinApi = (userData: SigninPayload) =>
   axiosInstance.post('/auth/signin', userData);
 
-export const logoutApi = () =>
-  axiosInstance.post('/auth/logout');
+export const logoutApi = () => axiosInstance.post('/auth/logout');
 
 export const verifyEmailApi = (token: string) =>
   axiosInstance.get(`/auth/verify-email/${token}`);

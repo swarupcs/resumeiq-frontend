@@ -10,21 +10,27 @@ interface UseAutosaveOptions {
 
 export type AutosaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 
-export const useAutosave = ({ data, onSave, delay = 2000, enabled = true }: UseAutosaveOptions) => {
+export const useAutosave = ({
+  data,
+  onSave,
+  delay = 2000,
+  enabled = true,
+}: UseAutosaveOptions) => {
   const [autosaveStatus, setAutosaveStatus] = useState<AutosaveStatus>('idle');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onSaveRef = useRef(onSave);
   const baselineRef = useRef<string | null>(null);
   const baselineCaptured = useRef(false);
 
-  useEffect(() => { onSaveRef.current = onSave; }, [onSave]);
+  useEffect(() => {
+    onSaveRef.current = onSave;
+  }, [onSave]);
 
   useEffect(() => {
     if (enabled && !baselineCaptured.current) {
       baselineRef.current = JSON.stringify(data);
       baselineCaptured.current = true;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 
   const serialized = JSON.stringify(data);
@@ -49,8 +55,9 @@ export const useAutosave = ({ data, onSave, delay = 2000, enabled = true }: UseA
       }
     }, delay);
 
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [serialized, delay, enabled]);
 
   const triggerSave = useCallback(async (currentData: ResumeData) => {
@@ -78,21 +85,33 @@ export const useAutosave = ({ data, onSave, delay = 2000, enabled = true }: UseA
 
 const MAX_HISTORY = 50;
 
-export const useUndoRedo = <T>(initialState: T, options: { maxHistory?: number } = {}) => {
+export const useUndoRedo = <T>(
+  initialState: T,
+  options: { maxHistory?: number } = {},
+) => {
   const maxHistory = options.maxHistory ?? MAX_HISTORY;
   const [state, setStateRaw] = useState<T>(initialState);
   const undoStack = useRef<T[]>([]);
   const redoStack = useRef<T[]>([]);
 
-  const setState = useCallback((updater: T | ((prev: T) => T)) => {
-    setStateRaw((current) => {
-      const next = typeof updater === 'function' ? (updater as (prev: T) => T)(current) : updater;
-      if (JSON.stringify(next) === JSON.stringify(current)) return current;
-      undoStack.current = [...undoStack.current.slice(-maxHistory + 1), current];
-      redoStack.current = [];
-      return next;
-    });
-  }, [maxHistory]);
+  const setState = useCallback(
+    (updater: T | ((prev: T) => T)) => {
+      setStateRaw((current) => {
+        const next =
+          typeof updater === 'function'
+            ? (updater as (prev: T) => T)(current)
+            : updater;
+        if (JSON.stringify(next) === JSON.stringify(current)) return current;
+        undoStack.current = [
+          ...undoStack.current.slice(-maxHistory + 1),
+          current,
+        ];
+        redoStack.current = [];
+        return next;
+      });
+    },
+    [maxHistory],
+  );
 
   const undo = useCallback(() => {
     if (!undoStack.current.length) return;
@@ -109,7 +128,10 @@ export const useUndoRedo = <T>(initialState: T, options: { maxHistory?: number }
     setStateRaw((current) => {
       const next = redoStack.current[0]!;
       redoStack.current = redoStack.current.slice(1);
-      undoStack.current = [...undoStack.current.slice(-maxHistory + 1), current];
+      undoStack.current = [
+        ...undoStack.current.slice(-maxHistory + 1),
+        current,
+      ];
       return next;
     });
   }, [maxHistory]);
@@ -120,7 +142,11 @@ export const useUndoRedo = <T>(initialState: T, options: { maxHistory?: number }
   }, []);
 
   return {
-    state, setState, undo, redo, clearHistory,
+    state,
+    setState,
+    undo,
+    redo,
+    clearHistory,
     canUndo: undoStack.current.length > 0,
     canRedo: redoStack.current.length > 0,
   };

@@ -38,7 +38,8 @@ export const useCreateResume = () => {
 export const useUpdateResume = (resumeId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: UpdateResumePayload) => resumeService.updateResume(payload),
+    mutationFn: (payload: UpdateResumePayload) =>
+      resumeService.updateResume(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['resume', resumeId] });
     },
@@ -77,19 +78,26 @@ export const useUpdateResumeTitle = () => {
 export const useToggleResumeVisibility = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (resumeId: string) => resumeService.toggleResumeVisibility(resumeId),
+    mutationFn: (resumeId: string) =>
+      resumeService.toggleResumeVisibility(resumeId),
     onSuccess: (data, resumeId) => {
       void queryClient.invalidateQueries({ queryKey: ['resume', resumeId] });
       void queryClient.invalidateQueries({ queryKey: ['userResume'] });
       const isPublic = data.data?.resume.isPublic;
-      toast.success(isPublic ? 'Resume is now public' : 'Resume is now private');
+      toast.success(
+        isPublic ? 'Resume is now public' : 'Resume is now private',
+      );
     },
     onError: () => toast.error('Failed to toggle visibility'),
   });
 };
 
 // ── useExportResumePdf ────────────────────────────────────────────────────────
-interface ExportPdfPayload { resumeId: string; fullName: string; resumeData: ResumeData; }
+interface ExportPdfPayload {
+  resumeId: string;
+  fullName: string;
+  resumeData: ResumeData;
+}
 
 export const useExportResumePdf = () =>
   useMutation({
@@ -103,8 +111,13 @@ export const useExportResumePdf = () =>
 // ── useExportResumePdfPublic ──────────────────────────────────────────────────
 export const useExportResumePdfPublic = () =>
   useMutation({
-    mutationFn: ({ resumeId, fullName }: { resumeId: string; fullName: string }) =>
-      resumeService.exportResumePdfPublic(resumeId, fullName),
+    mutationFn: ({
+      resumeId,
+      fullName,
+    }: {
+      resumeId: string;
+      fullName: string;
+    }) => resumeService.exportResumePdfPublic(resumeId, fullName),
     onMutate: () => toast.loading('Generating PDF...', { id: 'pdf-export' }),
     onSuccess: () => toast.success('PDF downloaded!', { id: 'pdf-export' }),
     onError: () => toast.error('Failed to generate PDF', { id: 'pdf-export' }),
@@ -119,7 +132,8 @@ export const useDuplicateResume = () => {
     onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: ['userResume'] });
       toast.success('Resume duplicated successfully');
-      if (data.data?.resume._id) navigate(`/app/builder/${data.data.resume._id}`);
+      if (data.data?.resume._id)
+        navigate(`/app/builder/${data.data.resume._id}`);
     },
     onError: () => toast.error('Failed to duplicate resume'),
   });
@@ -129,7 +143,8 @@ export const useDuplicateResume = () => {
 export const useRestoreVersion = (resumeId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (versionIndex: number) => resumeService.restoreVersion(resumeId, versionIndex),
+    mutationFn: (versionIndex: number) =>
+      resumeService.restoreVersion(resumeId, versionIndex),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['resume', resumeId] });
       toast.success('Version restored successfully');

@@ -18,10 +18,14 @@ export const useSessionRestore = () => {
         const { data } = await axiosInstance.get('/user/me');
         const res = data as ApiResponse<{ user: User }>;
         if (res.data?.user) {
-          dispatch(setCredentials({
-            success: true, statusCode: 200,
-            message: 'Session restored', data: { user: res.data.user },
-          }));
+          dispatch(
+            setCredentials({
+              success: true,
+              statusCode: 200,
+              message: 'Session restored',
+              data: { user: res.data.user },
+            }),
+          );
         }
       } catch {
         // 401 handled by axios interceptor — clears Redux + redirects

@@ -1,5 +1,9 @@
 import axiosInstance from '@/config/axiosConfig';
-import type { ATSAnalysisPayload, CoverLetterPayload, UploadResumePayload, ImportLinkedInPayload } from '@/types';
+import type {
+  CoverLetterPayload,
+  UploadResumePayload,
+  ImportLinkedInPayload,
+} from '@/types';
 
 export const enhanceProfessionalSummaryApi = (userContent: string) =>
   axiosInstance.post('/ai/enhance-pro-sum', { userContent });
@@ -16,5 +20,7 @@ export const importFromLinkedInApi = (data: ImportLinkedInPayload) =>
 export const generateCoverLetterApi = (data: CoverLetterPayload) =>
   axiosInstance.post('/ai/cover-letter', data);
 
-export const analyzeATSApi = (data: { resumeData: string; jobDescription: string }) =>
-  axiosInstance.post('/ai/ats-analysis', data);
+export const analyzeATSApi = (data: {
+  resumeData: string;
+  jobDescription: string;
+}) => axiosInstance.post('/ai/ats-analysis', data);

@@ -16,7 +16,11 @@ import {
 } from './templates/Templates';
 import type { ResumeData } from '@/types';
 import type { AutosaveStatus } from '@/hooks/resume/useAutosave';
-import { TEMPLATES, ACCENT_COLORS, SAMPLE_RESUME_DATA } from './resume-constants';
+import {
+  TEMPLATES,
+  ACCENT_COLORS,
+  SAMPLE_RESUME_DATA,
+} from './resume-constants';
 
 // ── ResumePreview ─────────────────────────────────────────────────────────────
 const TEMPLATE_MAP: Record<

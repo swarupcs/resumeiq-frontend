@@ -8,7 +8,8 @@ import authReducer from '../features/authSlice';
 // from 'redux-persist/lib/storage' resolves to an empty object.
 const localStorageEngine: Storage = {
   getItem: (key: string) => Promise.resolve(localStorage.getItem(key)),
-  setItem: (key: string, value: string) => Promise.resolve(localStorage.setItem(key, value)),
+  setItem: (key: string, value: string) =>
+    Promise.resolve(localStorage.setItem(key, value)),
   removeItem: (key: string) => Promise.resolve(localStorage.removeItem(key)),
 };
 

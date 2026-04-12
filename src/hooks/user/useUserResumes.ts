@@ -14,13 +14,18 @@ export const useUserResumes = () =>
 export const useUpdateProfile = () => {
   const dispatch = useDispatch();
   return useMutation({
-    mutationFn: (payload: UpdateProfilePayload) => userService.updateProfile(payload),
+    mutationFn: (payload: UpdateProfilePayload) =>
+      userService.updateProfile(payload),
     onSuccess: (data) => {
       if (data.data?.user) {
-        dispatch(setCredentials({
-          success: true, statusCode: 200,
-          message: 'Profile updated', data: { user: data.data.user },
-        }));
+        dispatch(
+          setCredentials({
+            success: true,
+            statusCode: 200,
+            message: 'Profile updated',
+            data: { user: data.data.user },
+          }),
+        );
       }
       toast.success('Profile updated successfully');
     },

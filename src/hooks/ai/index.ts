@@ -3,24 +3,32 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { aiService } from '@/services/ai.service';
-import type { ATSAnalysisPayload, CoverLetterPayload, UploadResumePayload, ImportLinkedInPayload } from '@/types';
+import type {
+  ATSAnalysisPayload,
+  CoverLetterPayload,
+  UploadResumePayload,
+  ImportLinkedInPayload,
+} from '@/types';
 
 export const useEnhanceProfessionalSummary = () =>
   useMutation({
-    mutationFn: (userContent: string) => aiService.enhanceProfessionalSummary(userContent),
+    mutationFn: (userContent: string) =>
+      aiService.enhanceProfessionalSummary(userContent),
     onError: () => toast.error('Failed to enhance professional summary'),
   });
 
 export const useEnhanceJobDescription = () =>
   useMutation({
-    mutationFn: (userContent: string) => aiService.enhanceJobDescription(userContent),
+    mutationFn: (userContent: string) =>
+      aiService.enhanceJobDescription(userContent),
     onError: () => toast.error('Failed to enhance job description'),
   });
 
 export const useUploadResume = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: UploadResumePayload) => aiService.uploadResume(payload),
+    mutationFn: (payload: UploadResumePayload) =>
+      aiService.uploadResume(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['userResume'] });
       toast.success('Resume uploaded successfully');
@@ -33,7 +41,8 @@ export const useImportFromLinkedIn = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   return useMutation({
-    mutationFn: (payload: ImportLinkedInPayload) => aiService.importFromLinkedIn(payload),
+    mutationFn: (payload: ImportLinkedInPayload) =>
+      aiService.importFromLinkedIn(payload),
     onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: ['userResume'] });
       toast.success('LinkedIn profile imported successfully');
@@ -45,7 +54,8 @@ export const useImportFromLinkedIn = () => {
 
 export const useGenerateCoverLetter = () =>
   useMutation({
-    mutationFn: (payload: CoverLetterPayload) => aiService.generateCoverLetter(payload),
+    mutationFn: (payload: CoverLetterPayload) =>
+      aiService.generateCoverLetter(payload),
     onError: () => toast.error('Failed to generate cover letter'),
   });
 

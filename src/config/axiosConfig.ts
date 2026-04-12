@@ -13,7 +13,10 @@ const axiosInstance = axios.create({
 });
 
 let isRefreshing = false;
-let refreshQueue: Array<{ resolve: (v: unknown) => void; reject: (e: unknown) => void }> = [];
+let refreshQueue: Array<{
+  resolve: (v: unknown) => void;
+  reject: (e: unknown) => void;
+}> = [];
 
 const processQueue = (error: unknown, token: unknown = null): void => {
   refreshQueue.forEach(({ resolve, reject }) => {
@@ -57,8 +60,14 @@ axiosInstance.interceptors.response.use(
             success: true,
             statusCode: 200,
             message: 'Tokens refreshed',
-            data: { user: (data as { data: { user: Parameters<typeof setCredentials>[0]['data'] } }).data.user },
-          })
+            data: {
+              user: (
+                data as {
+                  data: { user: Parameters<typeof setCredentials>[0]['data'] };
+                }
+              ).data.user,
+            },
+          }),
         );
         processQueue(null);
         isRefreshing = false;
@@ -73,7 +82,7 @@ axiosInstance.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;
