@@ -4,6 +4,7 @@ import { Loader2, XCircle } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '@/features/authSlice';
 import axiosInstance from '@/config/axiosConfig';
+import type { User } from '@/types';
 
 export const OAuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -26,7 +27,7 @@ export const OAuthCallback = () => {
             success: true,
             statusCode: 200,
             message: 'Logged in with Google',
-            data: { user: (data as { data: { user: unknown } }).data.user },
+            data: { user: (data as { data: { user: User } }).data.user },
           }),
         );
         navigate('/dashboard', { replace: true });
