@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/primitives';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { selectCurrentUser } from '@/features/authSlice';
-import { useTheme } from '@/context/ThemeContext';
+import { useTheme } from '@/context/theme-core';
 import { useLogout } from '@/hooks/auth/useLogout';
 
 const Navbar = () => {
